@@ -1,7 +1,5 @@
 import express from 'express';
-import { listSkills, getSkillsDir } from '../services/runner.js';
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
+import { listSkills } from '../services/runner.js';
 
 const router = express.Router();
 

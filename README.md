@@ -20,7 +20,7 @@ O núcleo multiagente não é reimplementado: usa-se o repositório oficial `ren
 3. **Runtime:** Node 20+
 4. **Build Command:** `bash build.sh` (script em [`opensquad-service/build.sh`](opensquad-service/build.sh); alternativa em uma linha está no mesmo README antigo se preferir).
 
-5. **Start Command:** `node src/server.js` ou `npm start`
+5. **Start Command:** use **só um** destes, sem texto extra: `node src/server.js` **ou** `npm start` (não escreva “ou” no campo — a Render executa a linha inteira como comando).
 
 6. **Node:** na aba **Environment**, defina **`NODE_VERSION`** = `20` (ou `20.18.0`) se o build reclamar de versão do Node.
 7. **Variáveis de ambiente:**
