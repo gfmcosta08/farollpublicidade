@@ -1,8 +1,16 @@
 # Revisão — backend, frontend e Render
 
-## O que não está “no código”: painel da Render
+## Correção automática (postinstall)
 
-Os logs mostram **Build Command** antigo:
+O `opensquad-service/package.json` tem **`postinstall`**: após `npm install`, se não existir `static-ui/`, roda `build.mjs`. Assim, mesmo com Build Command antigo (só `npm install` + clone), a UI costuma ser gerada **durante** o primeiro `npm install` do deploy.
+
+O `build.mjs` usa `npm install --ignore-scripts` onde precisa para **não** entrar em loop com o próprio `postinstall`.
+
+---
+
+## O que não está “no código”: painel da Render (opcional agora)
+
+Os logs podem mostrar **Build Command** antigo:
 
 `npm install && ( [ -d opensquad ] || git clone ...`
 

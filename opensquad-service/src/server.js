@@ -86,7 +86,7 @@ if (publicDist) {
       renderBuildCommand:
         'No painel Render → Settings → Build Command: npm install && npm run build',
       renderStartCommand: 'Start Command: npm start (sem a palavra "ou")',
-      note: 'Se o log de build não mostrar "Frontend Vite" e "static-ui OK", o comando de build no painel ainda está errado.',
+      note: 'Com postinstall no package.json, npm install já gera static-ui. Se ainda falhar, veja os logs do deploy ou use Build Command: npm install && npm run build.',
     });
   });
 }

@@ -23,8 +23,8 @@ function run(cmd, args, opts = {}) {
   if (r.status !== 0) process.exit(r.status ?? 1);
 }
 
-console.log('==> npm install (serviço)');
-run('npm', ['install']);
+console.log('==> npm install (serviço, --ignore-scripts evita loop com postinstall)');
+run('npm', ['install', '--ignore-scripts']);
 
 const opensquadDir = join(serviceRoot, 'opensquad');
 if (!existsSync(opensquadDir)) {
@@ -38,7 +38,7 @@ if (!existsSync(opensquadDir)) {
   ]);
 }
 console.log('==> npm install (opensquad)');
-run('npm', ['install'], { cwd: opensquadDir });
+run('npm', ['install', '--ignore-scripts'], { cwd: opensquadDir });
 
 const feRoot = join(serviceRoot, '..', 'publicidade-frontend');
 if (!existsSync(join(feRoot, 'package.json'))) {
@@ -48,7 +48,7 @@ if (!existsSync(join(feRoot, 'package.json'))) {
   process.exit(1);
 }
 console.log('==> Frontend Vite → static-ui');
-run('npm', ['install'], { cwd: feRoot });
+run('npm', ['install', '--ignore-scripts'], { cwd: feRoot });
 run('npm', ['run', 'build'], { cwd: feRoot });
 
 const distDir = join(feRoot, 'dist');

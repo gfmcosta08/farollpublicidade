@@ -5,6 +5,7 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
+    "postinstall": "node scripts/postinstall-build.mjs",
     "build": "node build.mjs",
     "start": "node src/server.js",
     "dev": "node --watch src/server.js"
