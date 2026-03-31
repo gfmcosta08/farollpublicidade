@@ -1,0 +1,8 @@
+**/node_modules
+opensquad-service/opensquad
+opensquad-service/static-ui
+opensquad-service/logs
+publicidade-frontend/dist
+.git
+**/.env
+**/.env.*

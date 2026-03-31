@@ -1,16 +1,14 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
 import './Layout.css';
 
 const navItems = [
-  { path: 'dashboard', label: 'Dashboard', icon: '📊' },
-  { path: 'squads', label: 'Squads', icon: '🤖' },
-  { path: 'logs', label: 'Logs', icon: '📝' },
-  { path: 'skills', label: 'Skills', icon: '🧩' },
+  { path: 'dashboard', label: 'Dashboard', icon: '📊', end: true },
+  { path: 'squads', label: 'Squads', icon: '🤖', end: false },
+  { path: 'logs', label: 'Logs', icon: '📝', end: true },
+  { path: 'skills', label: 'Skills', icon: '🧩', end: true },
 ];
 
 export default function Layout() {
-  const location = useLocation();
-
   return (
     <div className="publicidade-layout">
       <header className="publicidade-header">
@@ -20,14 +18,17 @@ export default function Layout() {
 
       <nav className="publicidade-nav">
         {navItems.map((item) => (
-          <Link
+          <NavLink
             key={item.path}
             to={item.path}
-            className={`nav-item ${location.pathname.endsWith('/' + item.path) || location.pathname.endsWith(item.path) ? 'active' : ''}`}
+            end={item.end}
+            className={({ isActive }) =>
+              `nav-item ${isActive ? 'active' : ''}`
+            }
           >
             <span className="nav-icon">{item.icon}</span>
             <span className="nav-label">{item.label}</span>
-          </Link>
+          </NavLink>
         ))}
       </nav>
 

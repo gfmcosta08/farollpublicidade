@@ -35,3 +35,12 @@ node src/server.js
 ## Depois
 
 Salve → **Manual Deploy** (ou espere o auto-deploy). Nos logs de build deve aparecer `==> Frontend Vite` e `static-ui OK`.
+
+Confirme com `GET /health` — deve retornar `"ui": true` após um build correto.
+
+## Alternativa: Docker (sem depender desse painel Node)
+
+1. No mesmo serviço ou um novo **Web Service** → **Environment: Docker**.
+2. **Dockerfile Path:** `Dockerfile` (raiz do repo).
+3. **Root Directory:** vazio ou raiz (o `Dockerfile` copia `opensquad-service` e `publicidade-frontend`).
+4. Deploy — o `Dockerfile` já roda `npm install && npm run build` dentro da imagem.

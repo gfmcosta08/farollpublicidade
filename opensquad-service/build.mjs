@@ -41,6 +41,12 @@ console.log('==> npm install (opensquad)');
 run('npm', ['install'], { cwd: opensquadDir });
 
 const feRoot = join(serviceRoot, '..', 'publicidade-frontend');
+if (!existsSync(join(feRoot, 'package.json'))) {
+  console.error(
+    `Erro: pasta publicidade-frontend não encontrada em ${feRoot}. O repositório completo (monorepo) precisa estar no deploy.`
+  );
+  process.exit(1);
+}
 console.log('==> Frontend Vite → static-ui');
 run('npm', ['install'], { cwd: feRoot });
 run('npm', ['run', 'build'], { cwd: feRoot });

@@ -13,8 +13,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * UI build: em produção (Render) copiamos para ./static-ui no build.sh.
- * Em dev local pode existir ../publicidade-frontend/dist sem cópia.
+ * UI: produção usa ./static-ui (gerado por npm run build → build.mjs).
+ * Dev: pode usar ../publicidade-frontend/dist.
  */
 function resolvePublicDist() {
   const inService = path.join(__dirname, '..', 'static-ui');
@@ -45,7 +45,13 @@ app.use((req, res, next) => {
 });
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'opensquad-service', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    service: 'opensquad-service',
+    timestamp: new Date().toISOString(),
+    ui: Boolean(publicDist),
+    uiPath: publicDist || null,
+  });
 });
 
 app.use('/api/admin/publicidade', adminPublicidadeRouter);
@@ -72,12 +78,15 @@ if (publicDist) {
   });
 } else {
   app.get('/', (_req, res) => {
-    res.json({
+    res.status(503).json({
       message:
-        'UI indisponível: rode o build do frontend e copie para opensquad-service/static-ui (veja build.sh) ou use publicidade-frontend/dist em dev.',
+        'UI não foi incluída no deploy: falta static-ui (resultado de npm run build na pasta opensquad-service).',
       health: '/health',
       api: '/api/admin/publicidade',
-      hint: 'Na Render: Build Command deve ser bash build.sh (gera static-ui).',
+      renderBuildCommand:
+        'No painel Render → Settings → Build Command: npm install && npm run build',
+      renderStartCommand: 'Start Command: npm start (sem a palavra "ou")',
+      note: 'Se o log de build não mostrar "Frontend Vite" e "static-ui OK", o comando de build no painel ainda está errado.',
     });
   });
 }
@@ -94,6 +103,8 @@ app.listen(PORT, () => {
     console.log(`UI estática: ${publicDist}`);
     console.log(`UI: http://localhost:${PORT}/admin/publicidade/`);
   } else {
-    console.warn('UI: nenhum dist encontrado (static-ui nem publicidade-frontend/dist)');
+    console.warn(
+      'UI: nenhum dist (static-ui ou publicidade-frontend/dist). Rode: npm run build'
+    );
   }
 });

@@ -24,6 +24,10 @@ O script [`opensquad-service/build.mjs`](opensquad-service/build.mjs) (via `npm 
 
 **Painel da Render:** veja [`opensquad-service/RENDER_PANEL.md`](opensquad-service/RENDER_PANEL.md) — o Build Command precisa ser `npm install && npm run build`, não o comando antigo.
 
+**Alternativa:** deploy com **Docker** usando o [`Dockerfile`](Dockerfile) na raiz (Web Service → Environment **Docker** → `Dockerfile` path `/Dockerfile`). Assim o build não depende do campo de Build Command do modo Node.
+
+Revisão técnica: [`docs/REVISAO_DEPLOY.md`](docs/REVISAO_DEPLOY.md).
+
 ## Deploy na Render (Web Service)
 
 1. Conecte o repositório `farollapi-cloud/publi`.
