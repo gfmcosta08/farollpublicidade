@@ -6,8 +6,8 @@ services:
     plan: free
     region: oregon
     rootDir: opensquad-service
-    buildCommand: bash build.sh
-    startCommand: node src/server.js
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION

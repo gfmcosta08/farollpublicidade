@@ -20,16 +20,18 @@ O `opensquad-service` expõe:
 - **API JSON:** ` /api/admin/publicidade/...` (ex.: `GET /api/admin/publicidade/squads`)
 - **Interface:** ` /admin/publicidade/` (build Vite servido pelo Express)
 
-O [`opensquad-service/build.sh`](opensquad-service/build.sh) roda o Vite e **copia** o resultado para `opensquad-service/static-ui`, para o mesmo Web Service na Render sempre achar os arquivos (o caminho `../publicidade-frontend/dist` sozinho falhava em alguns deploys).
+O script [`opensquad-service/build.mjs`](opensquad-service/build.mjs) (via `npm run build`) roda o Vite e **copia** o resultado para `opensquad-service/static-ui`. Há também [`build.sh`](opensquad-service/build.sh) equivalente no Linux.
+
+**Painel da Render:** veja [`opensquad-service/RENDER_PANEL.md`](opensquad-service/RENDER_PANEL.md) — o Build Command precisa ser `npm install && npm run build`, não o comando antigo.
 
 ## Deploy na Render (Web Service)
 
 1. Conecte o repositório `farollapi-cloud/publi`.
 2. **Root Directory:** `opensquad-service`
 3. **Runtime:** Node 20+
-4. **Build Command:** `bash build.sh`
+4. **Build Command:** `npm install && npm run build` (usa o script `build` em `opensquad-service/package.json` → `bash build.sh`). **Não** use o comando antigo longo com só `npm install` + clone do opensquad — isso **não** gera o front nem `static-ui`.
 
-5. **Start Command:** use **só um** destes, sem texto extra: `node src/server.js` **ou** `npm start` (não escreva “ou” no campo — a Render executa a linha inteira como comando).
+5. **Start Command:** `npm start` ou `node src/server.js` — **uma linha só**, sem a palavra “ou” (a Render executa o texto inteiro como um comando).
 
 6. **Node:** na aba **Environment**, defina **`NODE_VERSION`** = `20` (ou `20.18.0`) se o build reclamar de versão do Node.
 7. **Variáveis de ambiente:**
