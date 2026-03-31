@@ -16,17 +16,13 @@ Isso usa o script `build` do [`package.json`](package.json), que executa [`build
 
 ## Start Command
 
-Use **só um** destes (sem a palavra “ou”):
-
 ```bash
 npm start
 ```
 
-ou
+Isso executa [`start.mjs`](start.mjs): se não existir `static-ui`, roda `build.mjs` **antes** do servidor (útil quando o build no painel não gerou a UI).
 
-```bash
-node src/server.js
-```
+**Não** use `node src/server.js` direto em produção se quiser a correção automática da UI.
 
 ## Root Directory
 

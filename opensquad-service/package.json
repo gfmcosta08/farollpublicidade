@@ -7,7 +7,7 @@
   "scripts": {
     "postinstall": "node scripts/postinstall-build.mjs",
     "build": "node build.mjs",
-    "start": "node src/server.js",
+    "start": "node start.mjs",
     "dev": "node --watch src/server.js"
   },
   "dependencies": {

@@ -17,4 +17,5 @@ RUN npm install && npm run build
 
 EXPOSE 10000
 
+# npm start → start.mjs (gera static-ui se faltar) → server.js
 CMD ["npm", "start"]
