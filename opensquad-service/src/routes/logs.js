@@ -14,6 +14,18 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/execution/:executionId', async (req, res) => {
+  try {
+    const execution = await logService.getExecution(req.params.executionId);
+    if (!execution) {
+      return res.status(404).json({ error: 'Execution not found' });
+    }
+    res.json({ execution });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.get('/:executionId', async (req, res) => {
   try {
     const execution = await logService.getExecution(req.params.executionId);

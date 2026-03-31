@@ -47,7 +47,7 @@ export default function Logs() {
               <span className="squad-name">{log.squadName}</span>
               <span className="date">{new Date(log.startedAt).toLocaleString()}</span>
               <span className="duration">{log.duration ? `${Math.round(log.duration / 1000)}s` : '-'}</span>
-              <Link to={`/admin/publicidade/execution/${log.id}`} className="btn-link">
+              <Link to={`/execution/${log.id}`} className="btn-link">
                 Ver Detalhes
               </Link>
             </div>

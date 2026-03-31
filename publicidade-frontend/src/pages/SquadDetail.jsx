@@ -43,7 +43,7 @@ export default function SquadDetail() {
   return (
     <div className="squad-detail">
       <div className="page-header">
-        <Link to="/admin/publicidade/squads" className="back-link">← Voltar</Link>
+        <Link to="/squads" className="back-link">← Voltar</Link>
         <h2>{squad.name}</h2>
       </div>
 

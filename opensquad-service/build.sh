@@ -13,4 +13,10 @@ cd opensquad
 npm install
 cd ..
 
+echo "==> Frontend Vite (UI em /admin/publicidade)"
+cd ../publicidade-frontend
+npm install
+npm run build
+cd ../opensquad-service
+
 echo "==> build ok"

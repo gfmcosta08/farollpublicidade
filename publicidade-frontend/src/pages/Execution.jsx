@@ -40,7 +40,7 @@ export default function Execution() {
 
   return (
     <div className="execution-page">
-      <Link to="/admin/publicidade/logs" className="back-link">← Voltar aos Logs</Link>
+      <Link to="/logs" className="back-link">← Voltar aos Logs</Link>
       
       <div className="execution-header">
         <h2>Execução: {execution.squadName}</h2>

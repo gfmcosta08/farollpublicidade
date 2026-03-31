@@ -75,7 +75,7 @@ export default function Squads() {
                 >
                   {running[squad.name] ? 'Executando...' : '▶ Executar'}
                 </button>
-                <Link to={`/admin/publicidade/squads/${squad.name}`} className="btn btn-secondary">
+                <Link to={`/squads/${squad.name}`} className="btn btn-secondary">
                   Detalhes
                 </Link>
               </div>

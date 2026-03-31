@@ -13,12 +13,21 @@ Projeto independente para operar o [OpenSquad](https://github.com/renatoasse/ope
 
 O núcleo multiagente não é reimplementado: usa-se o repositório oficial `renatoasse/opensquad` (clone no build ou em disco).
 
+## Um só deploy (API + UI no Node)
+
+O `opensquad-service` expõe:
+
+- **API JSON:** ` /api/admin/publicidade/...` (ex.: `GET /api/admin/publicidade/squads`)
+- **Interface:** ` /admin/publicidade/` (build Vite servido pelo Express)
+
+O [`opensquad-service/build.sh`](opensquad-service/build.sh) também executa `npm run build` em `publicidade-frontend`.
+
 ## Deploy na Render (Web Service)
 
 1. Conecte o repositório `farollapi-cloud/publi`.
 2. **Root Directory:** `opensquad-service`
 3. **Runtime:** Node 20+
-4. **Build Command:** `bash build.sh` (script em [`opensquad-service/build.sh`](opensquad-service/build.sh); alternativa em uma linha está no mesmo README antigo se preferir).
+4. **Build Command:** `bash build.sh`
 
 5. **Start Command:** use **só um** destes, sem texto extra: `node src/server.js` **ou** `npm start` (não escreva “ou” no campo — a Render executa a linha inteira como comando).
 
@@ -36,15 +45,20 @@ Use o arquivo [`render.yaml`](render.yaml) na raiz (Blueprint no dashboard da Re
 
 ## Desenvolvimento local
 
+Terminal 1 — API + UI (após build do frontend):
+
 ```bash
-cd opensquad-service
+cd publicidade-frontend && npm install && npm run build && cd ../opensquad-service
 git clone https://github.com/renatoasse/opensquad.git opensquad
-npm install
 cd opensquad && npm install && cd ..
+npm install
 cp .env.example .env
-# edite .env com OPENAI_API_KEY
 npm start
 ```
+
+Abra `http://localhost:3000/admin/publicidade/` — a API fica em `/api/admin/publicidade/...`.
+
+Só frontend com hot reload (proxy para API na porta 3000): `cd publicidade-frontend && npm run dev` (porta 5173).
 
 Health check: `GET /health`
 

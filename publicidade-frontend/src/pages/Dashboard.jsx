@@ -55,7 +55,7 @@ export default function Dashboard() {
             {stats.recent_executions.map((exec) => (
               <Link
                 key={exec.id}
-                to={`/admin/publicidade/execution/${exec.id}`}
+                to={`/execution/${exec.id}`}
                 className="execution-item"
               >
                 <span className={`status status-${exec.status}`}>{exec.status}</span>
@@ -70,7 +70,7 @@ export default function Dashboard() {
       </div>
 
       <div className="actions">
-        <Link to="/admin/publicidade/squads" className="btn btn-primary">
+        <Link to="/squads" className="btn btn-primary">
           Ver Todos os Squads
         </Link>
       </div>

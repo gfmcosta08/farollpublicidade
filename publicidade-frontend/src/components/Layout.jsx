@@ -2,10 +2,10 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import './Layout.css';
 
 const navItems = [
-  { path: '/admin/publicidade/dashboard', label: 'Dashboard', icon: '📊' },
-  { path: '/admin/publicidade/squads', label: 'Squads', icon: '🤖' },
-  { path: '/admin/publicidade/logs', label: 'Logs', icon: '📝' },
-  { path: '/admin/publicidade/skills', label: 'Skills', icon: '🧩' },
+  { path: 'dashboard', label: 'Dashboard', icon: '📊' },
+  { path: 'squads', label: 'Squads', icon: '🤖' },
+  { path: 'logs', label: 'Logs', icon: '📝' },
+  { path: 'skills', label: 'Skills', icon: '🧩' },
 ];
 
 export default function Layout() {
@@ -17,13 +17,13 @@ export default function Layout() {
         <h1>PUBLICIDADE</h1>
         <span className="subtitle">OpenSquad Manager</span>
       </header>
-      
+
       <nav className="publicidade-nav">
         {navItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
-            className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+            className={`nav-item ${location.pathname.endsWith('/' + item.path) || location.pathname.endsWith(item.path) ? 'active' : ''}`}
           >
             <span className="nav-icon">{item.icon}</span>
             <span className="nav-label">{item.label}</span>
