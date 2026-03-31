@@ -13,10 +13,14 @@ cd opensquad
 npm install
 cd ..
 
-echo "==> Frontend Vite (UI em /admin/publicidade)"
+echo "==> Frontend Vite → static-ui (dentro deste serviço, garantido no deploy)"
 cd ../publicidade-frontend
 npm install
 npm run build
 cd ../opensquad-service
+rm -rf static-ui
+cp -r ../publicidade-frontend/dist ./static-ui
+test -f ./static-ui/index.html
+echo "==> static-ui OK ($(du -sh static-ui | cut -f1))"
 
 echo "==> build ok"

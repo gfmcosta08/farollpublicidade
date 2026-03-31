@@ -11,7 +11,27 @@ import adminPublicidadeRouter from './routes/adminPublicidade.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const publicDist = path.join(__dirname, '..', '..', 'publicidade-frontend', 'dist');
+
+/**
+ * UI build: em produção (Render) copiamos para ./static-ui no build.sh.
+ * Em dev local pode existir ../publicidade-frontend/dist sem cópia.
+ */
+function resolvePublicDist() {
+  const inService = path.join(__dirname, '..', 'static-ui');
+  const monorepoSibling = path.join(
+    __dirname,
+    '..',
+    '..',
+    'publicidade-frontend',
+    'dist'
+  );
+  if (existsSync(path.join(inService, 'index.html'))) return inService;
+  if (existsSync(path.join(monorepoSibling, 'index.html')))
+    return monorepoSibling;
+  return null;
+}
+
+const publicDist = resolvePublicDist();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,7 +55,7 @@ app.use('/skills', skillsRouter);
 app.use('/logs', logsRouter);
 app.use('/dashboard', dashboardRouter);
 
-if (existsSync(publicDist)) {
+if (publicDist) {
   app.use(
     '/admin/publicidade',
     express.static(publicDist, { index: 'index.html' })
@@ -54,9 +74,10 @@ if (existsSync(publicDist)) {
   app.get('/', (_req, res) => {
     res.json({
       message:
-        'API — faça build do frontend (npm run build em publicidade-frontend) para servir a UI em /admin/publicidade',
+        'UI indisponível: rode o build do frontend e copie para opensquad-service/static-ui (veja build.sh) ou use publicidade-frontend/dist em dev.',
       health: '/health',
       api: '/api/admin/publicidade',
+      hint: 'Na Render: Build Command deve ser bash build.sh (gera static-ui).',
     });
   });
 }
@@ -69,7 +90,10 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`OpenSquad path: ${process.env.PATH_OPENSQUAD || './opensquad'}`);
-  if (existsSync(publicDist)) {
+  if (publicDist) {
+    console.log(`UI estática: ${publicDist}`);
     console.log(`UI: http://localhost:${PORT}/admin/publicidade/`);
+  } else {
+    console.warn('UI: nenhum dist encontrado (static-ui nem publicidade-frontend/dist)');
   }
 });

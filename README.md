@@ -20,7 +20,7 @@ O `opensquad-service` expõe:
 - **API JSON:** ` /api/admin/publicidade/...` (ex.: `GET /api/admin/publicidade/squads`)
 - **Interface:** ` /admin/publicidade/` (build Vite servido pelo Express)
 
-O [`opensquad-service/build.sh`](opensquad-service/build.sh) também executa `npm run build` em `publicidade-frontend`.
+O [`opensquad-service/build.sh`](opensquad-service/build.sh) roda o Vite e **copia** o resultado para `opensquad-service/static-ui`, para o mesmo Web Service na Render sempre achar os arquivos (o caminho `../publicidade-frontend/dist` sozinho falhava em alguns deploys).
 
 ## Deploy na Render (Web Service)
 

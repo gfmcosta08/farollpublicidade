@@ -13,6 +13,7 @@ opensquad-service/opensquad/
 
 # Frontend build
 publicidade-frontend/dist/
+opensquad-service/static-ui/
 
 # Python
 __pycache__/
