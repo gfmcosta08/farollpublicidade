@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: opensquad-service
+    runtime: node
+    nodeVersion: "20"
+    plan: starter
+    rootDir: opensquad-service
+    buildCommand: |
+      npm install
+      if [ ! -d opensquad ]; then git clone https://github.com/renatoasse/opensquad.git opensquad; fi
+      cd opensquad && npm install
+    startCommand: node src/server.js
+    envVars:
+      - key: PATH_OPENSQUAD
+        value: ./opensquad
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: PORT
+        value: "3000"
+    healthCheckPath: /health
+    healthCheckTimeout: 30
+    healthCheckInterval: 10
