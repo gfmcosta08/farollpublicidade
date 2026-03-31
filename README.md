@@ -18,14 +18,12 @@ O núcleo multiagente não é reimplementado: usa-se o repositório oficial `ren
 1. Conecte o repositório `farollapi-cloud/publi`.
 2. **Root Directory:** `opensquad-service`
 3. **Runtime:** Node 20+
-4. **Build Command:**
-
-```bash
-npm install && ( [ -d opensquad ] || git clone https://github.com/renatoasse/opensquad.git opensquad ) && cd opensquad && npm install && cd ..
-```
+4. **Build Command:** `bash build.sh` (script em [`opensquad-service/build.sh`](opensquad-service/build.sh); alternativa em uma linha está no mesmo README antigo se preferir).
 
 5. **Start Command:** `node src/server.js` ou `npm start`
-6. **Variáveis de ambiente:**
+
+6. **Node:** na aba **Environment**, defina **`NODE_VERSION`** = `20` (ou `20.18.0`) se o build reclamar de versão do Node.
+7. **Variáveis de ambiente:**
    - `PATH_OPENSQUAD` = `./opensquad`
    - `OPENAI_API_KEY` = sua chave (secret)
    - `NODE_ENV` = `production` (opcional)

@@ -6,13 +6,12 @@ services:
     plan: free
     region: oregon
     rootDir: opensquad-service
-    buildCommand: |
-      npm install
-      if [ ! -d opensquad ]; then git clone https://github.com/renatoasse/opensquad.git opensquad; fi
-      cd opensquad && npm install
+    buildCommand: bash build.sh
     startCommand: node src/server.js
     healthCheckPath: /health
     envVars:
+      - key: NODE_VERSION
+        value: "20"
       - key: NODE_ENV
         value: production
       - key: PATH_OPENSQUAD
