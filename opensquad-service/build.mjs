@@ -17,7 +17,7 @@ function run(cmd, args, opts = {}) {
     stdio: 'inherit',
     shell: true,
     cwd,
-    env: process.env,
+    env: opts.env ?? process.env,
   });
   if (r.error) throw r.error;
   if (r.status !== 0) process.exit(r.status ?? 1);
