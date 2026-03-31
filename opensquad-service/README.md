@@ -1,5 +1,7 @@
 # OpenSquad Service - Integration Guide
 
+> **Deploy no monorepo Publi:** comandos de build/start e URLs estão em [`../docs/DEPLOY_E_INTEGRACOES.md`](../docs/DEPLOY_E_INTEGRACOES.md), [`RENDER_PANEL.md`](RENDER_PANEL.md) e [`../AGENTS.md`](../AGENTS.md). Não use apenas a secção “Deploy to Render” abaixo sem cruzar com esses ficheiros.
+
 ## Overview
 
 This is a Node.js service that wraps the OpenSquad multi-agent framework, exposing it via REST API for integration with Python backends.
@@ -117,16 +119,17 @@ npm start
 
 ## Deploy to Render
 
+Ver documentação canónica do monorepo:
+
+- [`../docs/DEPLOY_E_INTEGRACOES.md`](../docs/DEPLOY_E_INTEGRACOES.md)
+- [`RENDER_PANEL.md`](RENDER_PANEL.md)
+
+Resumo: **Root Directory** `opensquad-service`; **Build** `npm install && npm run build`; **Start** `npm start`. Blueprint opcional: [`../render.yaml`](../render.yaml).
+
 ```bash
-# Deploy using render.yaml
+# Opcional: Render CLI (se configurado)
 render deploy
 ```
-
-Or manually:
-1. Create Node.js web service on Render
-2. Set environment variables: `PATH_OPENSQUAD=./opensquad`, `OPENAI_API_KEY`, `PORT=3000`
-3. Build command: `npm install && git clone https://github.com/renatoasse/opensquad.git opensquad && cd opensquad && npm install`
-4. Start command: `node src/server.js`
 
 ## Integration with Python
 

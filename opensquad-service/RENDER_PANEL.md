@@ -1,5 +1,9 @@
 # O que colocar no painel da Render (Web Service)
 
+Contexto do monorepo e URLs: [`../docs/DEPLOY_E_INTEGRACOES.md`](../docs/DEPLOY_E_INTEGRACOES.md). Instruções para IAs: [`../AGENTS.md`](../AGENTS.md).
+
+---
+
 O log mostrou que a Render **ainda usa o build antigo** (só `npm install` + clone do opensquad) e **não** roda o Vite nem cria `static-ui`. Corrija **na mão** uma vez:
 
 ## Build Command

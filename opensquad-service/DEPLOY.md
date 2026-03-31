@@ -1,4 +1,14 @@
-# Deploy Instructions - OpenSquad Service
+# Deploy Instructions — OpenSquad Service
+
+> **Desatualizado para o monorepo Publi.** Para **GitHub, Render, Build/Start, Root Directory e URLs**, use a documentação canónica do repositório:
+>
+> - [`../docs/DEPLOY_E_INTEGRACOES.md`](../docs/DEPLOY_E_INTEGRACOES.md)
+> - [`RENDER_PANEL.md`](RENDER_PANEL.md)
+> - [`../AGENTS.md`](../AGENTS.md)
+
+O texto abaixo mantém-se como referência histórica de desenvolvimento local; **não** siga os comandos de Build/Start da secção antiga “Deploy to Render” para o projeto **Publi** (usar sempre `npm install && npm run build` e `npm start` no painel, Root `opensquad-service`).
+
+---
 
 ## Prerequisites
 
@@ -25,7 +35,9 @@ cp .env.example .env
 npm start
 ```
 
-## Deploy to Render
+## Deploy to Render (legado — ver doc canónico)
+
+Para o serviço **Publi** no monorepo `farollapi-cloud/publi`, ignore esta secção e siga [`../docs/DEPLOY_E_INTEGRACOES.md`](../docs/DEPLOY_E_INTEGRACOES.md).
 
 ### Option 1: Using render.yaml
 
@@ -37,7 +49,7 @@ npm install -g render-cli
 render deploy
 ```
 
-### Option 2: Manual Deploy
+### Option 2: Manual Deploy (histórico — não usar como única fonte)
 
 1. **Create a new Web Service** on Render
    - Name: `opensquad-service`

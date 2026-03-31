@@ -1,0 +1,21 @@
+---
+description: Deploy Publi — GitHub, Render e fonte canónica (obrigatório ler antes de mudanças de infra)
+globs:
+  - opensquad-service/**/*
+  - publicidade-frontend/**/*
+  - render.yaml
+  - docs/DEPLOY_E_INTEGRACOES.md
+  - docs/continuidade.md
+---
+
+# Publi — deploy e integrações
+
+Antes de alterar **build**, **start**, **Render**, **URLs** ou **variáveis de ambiente**:
+
+1. Ler **`docs/DEPLOY_E_INTEGRACOES.md`** (fonte canónica).
+2. Para o painel da Render: **`opensquad-service/RENDER_PANEL.md`**.
+3. Continuidade entre sessões: **`docs/continuidade.md`**.
+
+**Factos fixos:** repositório `farollapi-cloud/publi`, branch `main`, Root Directory na Render = `opensquad-service`. Build = `npm install && npm run build` dentro dessa pasta. Não inventar segundo repositório de aplicação além do GitHub indicado no doc.
+
+**Não** sobrescrever `.env` sem confirmação do utilizador.

@@ -2,6 +2,8 @@
 
 Projeto independente para operar o [OpenSquad](https://github.com/renatoasse/opensquad) via API HTTP e interface web, com deploy na [Render](https://render.com).
 
+**Antes de alterar deploy ou integrações:** leia [`docs/DEPLOY_E_INTEGRACOES.md`](docs/DEPLOY_E_INTEGRACOES.md) (fonte canónica). Para assistentes (IA): [`AGENTS.md`](AGENTS.md). Continuidade entre sessões: [`docs/continuidade.md`](docs/continuidade.md).
+
 ## Estrutura do repositório
 
 | Pasta | Descrição |
@@ -20,7 +22,7 @@ O `opensquad-service` expõe:
 - **API JSON:** ` /api/admin/publicidade/...` (ex.: `GET /api/admin/publicidade/squads`)
 - **Interface:** ` /admin/publicidade/` (build Vite servido pelo Express)
 
-O script [`opensquad-service/build.mjs`](opensquad-service/build.mjs) (via `npm run build`) roda o Vite e **copia** o resultado para `opensquad-service/static-ui`. Há também [`build.sh`](opensquad-service/build.sh) equivalente no Linux.
+O script [`opensquad-service/build.mjs`](opensquad-service/build.mjs) (via `npm run build` em `opensquad-service/package.json`) roda o Vite e **copia** o resultado para `opensquad-service/static-ui`. Existe ainda [`build.sh`](opensquad-service/build.sh) como alternativa em Linux.
 
 **Painel da Render:** veja [`opensquad-service/RENDER_PANEL.md`](opensquad-service/RENDER_PANEL.md) — o Build Command precisa ser `npm install && npm run build`, não o comando antigo.
 
@@ -28,14 +30,16 @@ O script [`opensquad-service/build.mjs`](opensquad-service/build.mjs) (via `npm 
 
 Revisão técnica: [`docs/REVISAO_DEPLOY.md`](docs/REVISAO_DEPLOY.md).
 
+**Onde está o deploy (GitHub, Render, o que não é usado):** [`docs/DEPLOY_E_INTEGRACOES.md`](docs/DEPLOY_E_INTEGRACOES.md).
+
 ## Deploy na Render (Web Service)
 
 1. Conecte o repositório `farollapi-cloud/publi`.
 2. **Root Directory:** `opensquad-service`
 3. **Runtime:** Node 20+
-4. **Build Command:** `npm install && npm run build` (usa o script `build` em `opensquad-service/package.json` → `bash build.sh`). **Não** use o comando antigo longo com só `npm install` + clone do opensquad — isso **não** gera o front nem `static-ui`.
+4. **Build Command:** `npm install && npm run build` (o script `build` chama `node build.mjs`). **Não** use o comando antigo longo com só `npm install` + clone do opensquad — isso **não** gera o front nem `static-ui`.
 
-5. **Start Command:** `npm start` ou `node src/server.js` — **uma linha só**, sem a palavra “ou” (a Render executa o texto inteiro como um comando).
+5. **Start Command:** `npm start` — **uma linha só** (a Render executa o texto inteiro como um comando). Preferir **não** usar `node src/server.js` em produção se quiser o fluxo de [`start.mjs`](opensquad-service/start.mjs) quando `static-ui` faltar.
 
 6. **Node:** na aba **Environment**, defina **`NODE_VERSION`** = `20` (ou `20.18.0`) se o build reclamar de versão do Node.
 7. **Variáveis de ambiente:**
@@ -70,5 +74,8 @@ Health check: `GET /health`
 
 ## Documentação
 
+- [docs/DEPLOY_E_INTEGRACOES.md](docs/DEPLOY_E_INTEGRACOES.md) — **deploy, GitHub, Render (canónico)**
+- [AGENTS.md](AGENTS.md) — instruções para assistentes (IA)
+- [docs/continuidade.md](docs/continuidade.md) — continuidade entre sessões
 - [opensquad-service/README.md](opensquad-service/README.md) — endpoints
-- [opensquad-service/DEPLOY.md](opensquad-service/DEPLOY.md) — deploy
+- [opensquad-service/DEPLOY.md](opensquad-service/DEPLOY.md) — legado (ver doc canónico acima)
