@@ -151,11 +151,11 @@
   <!-- Progress -->
   <div class="mb-6">
     <div class="h-1.5 bg-bg-surface rounded-full overflow-hidden">
-      <div id="wiz-bar" class="progress-bar h-full bg-gradient-to-r from-brand-gold to-brand-pink rounded-full" style="width:17%"></div>
+      <div id="wiz-bar" class="progress-bar h-full bg-gradient-to-r from-brand-gold to-brand-pink rounded-full" style="width:20%"></div>
     </div>
     <div class="flex justify-between mt-2 text-xs text-text-muted">
       <span id="wl1" class="text-brand-gold font-medium">Objetivo</span>
-      <span id="wl2">LLM</span><span id="wl3">Instagram</span><span id="wl4">Referência</span><span id="wl5">Agentes</span><span id="wl6">Revisão</span>
+      <span id="wl2">LLM</span><span id="wl3">Instagram</span><span id="wl4">Agentes</span><span id="wl5">Revisão</span>
     </div>
   </div>
   <!-- Step panels -->
@@ -418,7 +418,7 @@ function delProvider(id, label) {
 }
 
 // ─── Wizard ──────────────────────────────────────────────────────────────────
-const WIZ_LABELS = ['Objetivo','LLM','Instagram','Referência','Agentes','Revisão'];
+const WIZ_LABELS = ['Objetivo','LLM','Instagram','Agentes','Revisão'];
 const ALL_AGENTS = [
   {id:'pesquisador',icon:'🔍',label:'Pesquisador',   desc:'Tendências e dados de mercado'},
   {id:'estrategista',icon:'🎯',label:'Estrategista', desc:'Estratégia e ângulo editorial'},
@@ -448,7 +448,7 @@ function initWizard() {
 function renderWizStep() {
   const s = S.wiz.step;
   document.getElementById('wiz-step-label').textContent = `Etapa ${s} / 6`;
-  document.getElementById('wiz-bar').style.width = `${Math.round(s/6*100)}%`;
+  document.getElementById('wiz-bar').style.width = `${Math.round(s/5*100)}%`;
   WIZ_LABELS.forEach((l,i) => {
     const el = document.getElementById(`wl${i+1}`);
     el.className = i+1===s ? 'text-brand-gold font-medium' : 'text-text-muted';
@@ -456,7 +456,7 @@ function renderWizStep() {
   document.getElementById('wiz-prev').classList.toggle('hidden', s===1);
   const _btn = document.getElementById('wiz-next');
   _btn.disabled = false;
-  _btn.textContent = s===6 ? '✅ Criar Squad' : 'Próximo →';
+  _btn.textContent = s===5 ? '✅ Criar Squad' : 'Próximo →';
 
   const d = S.wiz.data;
   const steps = [
@@ -490,6 +490,17 @@ function renderWizStep() {
             ${PLATFORMS.map(p=>`<span class="tag px-3 py-1.5 rounded-lg border text-sm ${(d.platforms||[]).includes(p)?'on bg-bg-surface border-brand-gold/20':'bg-bg-surface border-brand-gold/20 text-text-secondary'}" onclick="togglePlatform(this,'${p}')">${p}</span>`).join('')}
           </div>
         </div>
+        <div class="card rounded-2xl p-6">
+          <h3 class="font-semibold mb-1">🔍 Referências de Estilo <span class="text-text-muted text-xs font-normal">(opcional)</span></h3>
+          <p class="text-text-secondary text-xs mb-4">Cole links de perfis ou posts do Instagram para usar como modelo visual e de linguagem.</p>
+          <div id="ref-links-wrap" class="space-y-2 mb-3"></div>
+          <button onclick="addRefLink()" class="text-xs text-brand-gold border border-brand-gold/30 px-3 py-1.5 rounded-lg hover:bg-brand-gold/10">+ Adicionar link</button>
+          <div class="mt-4">
+            <label class="block text-xs font-medium text-text-secondary mb-1">Notas sobre o estilo desejado</label>
+            <textarea id="wf-ref-notes" rows="2" placeholder="Ex: Gosto de cores vibrantes, hooks com dados, linguagem direta..."
+              class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted resize-none text-sm">${d.ref_notes||''}</textarea>
+          </div>
+        </div>
       </div>
       <div class="card rounded-2xl p-5 h-fit sticky top-8">
         <h3 class="font-bold mb-3 text-sm flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-brand-gold inline-block"></span>Preview</h3>
@@ -497,6 +508,7 @@ function renderWizStep() {
           <div><span class="text-text-muted">Nome:</span><p class="text-text-primary font-medium mt-0.5">${d.name||'—'}</p></div>
           <div><span class="text-text-muted">Segmento:</span><p class="text-brand-gold mt-0.5">${d.domain||'outro'}</p></div>
           <div><span class="text-text-muted">Plataformas:</span><p class="text-text-secondary mt-0.5">${(d.platforms||[]).join(', ')||'—'}</p></div>
+          <div><span class="text-text-muted">Referências:</span><p class="text-text-secondary mt-0.5">${(d.ref_links||[]).filter(l=>l.trim()).length} link(s)</p></div>
         </div>
       </div>
     </div>`,
@@ -577,33 +589,6 @@ function renderWizStep() {
     </div>`,
 
     // Step 4
-    `<div class="grid lg:grid-cols-3 gap-6 fade">
-      <div class="lg:col-span-2">
-        <div class="card rounded-2xl p-6">
-          <h2 class="text-lg font-bold text-brand-gold mb-1">💡 Referências de Estilo</h2>
-          <p class="text-text-secondary text-xs mb-5">Cole links de perfis ou posts do Instagram para usar como modelo visual e de linguagem.</p>
-          <div id="ref-links-wrap" class="space-y-2 mb-4"></div>
-          <button onclick="addRefLink()" class="text-xs text-brand-gold border border-brand-gold/30 px-3 py-1.5 rounded-lg hover:bg-brand-gold/10">+ Adicionar link</button>
-          <div class="mt-4 p-4 rounded-xl bg-brand-gold/5 border border-brand-gold/20 text-xs text-text-secondary space-y-1">
-            <p class="font-semibold text-brand-gold">🔍 O que os agentes vão analisar:</p>
-            <p>✅ Estilo visual — cores, composição, fontes</p>
-            <p>✅ Tom de voz — formal, educativo, descontraído</p>
-            <p>✅ Estrutura de conteúdo — hooks, organização dos slides</p>
-          </div>
-          <div class="mt-4">
-            <label class="block text-xs font-medium text-text-secondary mb-1">Notas sobre o estilo desejado</label>
-            <textarea id="wf-ref-notes" rows="2" placeholder="Ex: Gosto de cores vibrantes, hooks com dados, linguagem direta..."
-              class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted resize-none text-sm">${d.ref_notes||''}</textarea>
-          </div>
-        </div>
-      </div>
-      <div class="card rounded-2xl p-5 h-fit sticky top-8">
-        <h3 class="font-bold mb-3 text-sm">🔗 Referências</h3>
-        <p class="text-xs text-text-muted">${(d.ref_links||[]).filter(l=>l.trim()).length} link(s) adicionado(s)</p>
-      </div>
-    </div>`,
-
-    // Step 5
     `<div class="fade">
       <div class="card rounded-2xl p-6">
         <h2 class="text-lg font-bold text-brand-gold mb-1">👥 Equipe de Agentes</h2>
@@ -623,7 +608,7 @@ function renderWizStep() {
       </div>
     </div>`,
 
-    // Step 6 — Review
+    // Step 5 — Review
     `<div class="fade">
       <div class="card rounded-2xl p-6 mb-5">
         <h2 class="text-lg font-bold text-brand-gold mb-5">📋 Revisão Final</h2>
@@ -643,14 +628,14 @@ function renderWizStep() {
     </div>`,
   ];
   document.getElementById('wiz-steps').innerHTML = steps[s-1];
-  if (s===4) renderRefLinks();
+  if (s===1) renderRefLinks();
   if (s===2 && d.provider_id) loadWizModels(d.provider_id, d.model);
 }
 
 function wizPrev() { if(S.wiz.step>1){ collectStep(); S.wiz.step--; renderWizStep(); } }
 async function wizNext() {
   collectStep();
-  if (S.wiz.step === 6) { await createSquad(); return; }
+  if (S.wiz.step === 5) { await createSquad(); return; }
   S.wiz.step++;
   renderWizStep();
 }
@@ -662,6 +647,8 @@ function collectStep() {
     d.name        = document.getElementById('wf-name')?.value?.trim();
     d.description = document.getElementById('wf-desc')?.value?.trim();
     d.domain      = document.getElementById('wf-domain')?.value;
+    d.ref_links   = Array.from(document.querySelectorAll('.ref-link')).map(i=>i.value.trim());
+    d.ref_notes   = document.getElementById('wf-ref-notes')?.value?.trim();
   }
   if (s===2) { d.model = document.getElementById('wf-model')?.value; }
   if (s===3) {
@@ -669,10 +656,6 @@ function collectStep() {
     d.ig_token     = document.getElementById('wf-ig-token')?.value?.trim();
     d.ig_user_id   = document.getElementById('wf-ig-user')?.value?.trim();
     d.imgbb_key    = document.getElementById('wf-imgbb')?.value?.trim();
-  }
-  if (s===4) {
-    d.ref_links = Array.from(document.querySelectorAll('.ref-link')).map(i=>i.value.trim());
-    d.ref_notes = document.getElementById('wf-ref-notes')?.value?.trim();
   }
 }
 
