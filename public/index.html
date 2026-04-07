@@ -114,7 +114,7 @@
         <div class="text-2xl mb-1">🟣</div><div class="font-bold text-sm">Anthropic</div><div class="text-xs text-text-muted">Claude 3.5 / 3.7 / 4</div>
       </div>
       <div onclick="selectProviderType('minimax')"   id="pt-minimax"   class="provider-type card rounded-xl p-4 text-center cursor-pointer">
-        <div class="text-2xl mb-1">🔵</div><div class="font-bold text-sm">MiniMax</div><div class="text-xs text-text-muted">Text-01 / abab6.5</div>
+        <div class="text-2xl mb-1">🔵</div><div class="font-bold text-sm">MiniMax</div><div class="text-xs text-text-muted">M2.7 / M2.5 / M2</div>
       </div>
     </div>
     <div class="grid sm:grid-cols-2 gap-4 mb-4">
@@ -874,10 +874,10 @@ function renderRunOutputs(runId, outputs) {
 
   if (images.length > 0) {
     const downloadAllBtn = `
-      <button onclick="downloadAllImages('${runId}', ${JSON.stringify(images.map(i=>i.filename))})"
+      <a href="/api/runs/${runId}/outputs/images.zip" download="run-${runId}-imagens.zip"
         class="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-brand-gold/20 border border-brand-gold/30 text-brand-gold text-sm font-bold hover:bg-brand-gold/30 transition-colors">
-        🖼️ Baixar todas as imagens (${images.length})
-      </button>`;
+        🖼️ Baixar todas as imagens (ZIP, ${images.length})
+      </a>`;
     const imageList = images.map(o => `
       <div class="flex items-center justify-between p-3 rounded-xl bg-bg-surface border border-brand-gold/10">
         <div class="flex items-center gap-3">
@@ -896,19 +896,6 @@ function renderRunOutputs(runId, outputs) {
   const copyFile = outputs.find(o => o.filename === 'copy-final.json') ||
                    outputs.find(o => o.filename === 'copy.json');
   if (copyFile) fetchAndDisplayCopy(runId, copyFile.filename);
-}
-
-function downloadAllImages(runId, filenames) {
-  filenames.forEach((name, i) => {
-    setTimeout(() => {
-      const a = document.createElement('a');
-      a.href = `/api/runs/${runId}/outputs/${name}`;
-      a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }, i * 600);
-  });
 }
 
 async function fetchAndDisplayCopy(runId, filename) {

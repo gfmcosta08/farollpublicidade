@@ -3,6 +3,29 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const clientCache = new Map();
 
+const MINIMAX_DEFAULT_BASE = 'https://api.minimax.io/v1';
+
+/** IDs legados salvos em squads antigos → modelos atuais (OpenAI-compatible API). */
+const MINIMAX_MODEL_ALIASES = {
+  'abab6.5s-chat': 'MiniMax-M2.5',
+  'abab-6.5s-chat': 'MiniMax-M2.5',
+  'abab6.5-chat': 'MiniMax-M2.5',
+  'abab-6.5-chat': 'MiniMax-M2.5',
+  'abab5.5s-chat': 'MiniMax-M2',
+  'abab-5.5s-chat': 'MiniMax-M2',
+  'abab5.5-chat': 'MiniMax-M2',
+  'MiniMax-Text-01': 'MiniMax-M2.7',
+};
+
+function resolveMinimaxModel(model) {
+  return MINIMAX_MODEL_ALIASES[model] || model;
+}
+
+function minimaxBaseURL() {
+  const u = process.env.MINIMAX_BASE_URL?.trim();
+  return u || MINIMAX_DEFAULT_BASE;
+}
+
 function openaiClient(apiKey, baseURL) {
   const key = `openai:${apiKey}:${baseURL}`;
   if (!clientCache.has(key)) {
@@ -46,9 +69,13 @@ export async function callLLM({ provider, model, api_key, messages, temperature 
   }
 
   if (provider === 'minimax') {
-    // MiniMax exposes an OpenAI-compatible endpoint
-    const res = await openaiClient(api_key, 'https://api.minimaxi.chat/v1')
-      .chat.completions.create({ model, messages, temperature, max_tokens: maxTokens });
+    const resolvedModel = resolveMinimaxModel(model);
+    const res = await openaiClient(api_key, minimaxBaseURL()).chat.completions.create({
+      model: resolvedModel,
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+    });
     return res.choices[0].message.content;
   }
 

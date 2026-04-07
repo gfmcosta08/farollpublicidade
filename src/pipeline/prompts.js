@@ -59,10 +59,8 @@ Crie entre 4 e 7 slides. Responda SEMPRE em Português Brasileiro (pt-BR). Use l
 
 export async function designerSystemPrompt(styleContext) {
   const bp = await load('best-practices/image-design.md');
-  const noText = styleContext && /sem texto|no text|without text|nenhum texto/i.test(styleContext);
-  const textRule = noText
-    ? 'CRITICAL: Do NOT include any text, words, letters, numbers, watermarks or typography in the image. Pure visual only.'
-    : 'DEFAULT: Do NOT include any text, words or typography in the image UNLESS the style context explicitly requests it. If text is explicitly requested, write it in Brazilian Portuguese (pt-BR).';
+  const textRule = `REGRA OBRIGATÓRIA — IMAGEM SEM TEXTO:
+Nenhum texto, letras, números, palavras, legendas, placas, logotipos com tipografia legível, marcas d'água ou qualquer tipografia na cena. Apenas ilustração/fotografia pura. Cada string em "image_prompts" DEVE terminar reforçando "no text, no letters, no typography, no watermarks" em inglês.`;
   return `Você é um diretor de arte criando prompts de imagem para DALL-E 3.
 
 ${bp}

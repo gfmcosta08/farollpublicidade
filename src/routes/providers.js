@@ -25,10 +25,13 @@ export const MODELS = {
     { id: 'claude-3-haiku-20240307',      label: 'Claude 3 Haiku (Econômico)' },
   ],
   minimax: [
-    { id: 'MiniMax-Text-01',   label: 'MiniMax Text-01 (Flagship)' },
-    { id: 'abab6.5s-chat',     label: 'abab6.5s (Recomendado ⚡)' },
-    { id: 'abab6.5-chat',      label: 'abab6.5' },
-    { id: 'abab5.5s-chat',     label: 'abab5.5s (Econômico)' },
+    { id: 'MiniMax-M2.7',            label: 'MiniMax M2.7 (Flagship)' },
+    { id: 'MiniMax-M2.7-highspeed',  label: 'MiniMax M2.7 Highspeed' },
+    { id: 'MiniMax-M2.5',            label: 'MiniMax M2.5 (Recomendado)' },
+    { id: 'MiniMax-M2.5-highspeed',  label: 'MiniMax M2.5 Highspeed' },
+    { id: 'MiniMax-M2.1',            label: 'MiniMax M2.1' },
+    { id: 'MiniMax-M2.1-highspeed',  label: 'MiniMax M2.1 Highspeed' },
+    { id: 'MiniMax-M2',              label: 'MiniMax M2 (Econômico)' },
   ],
 };
 

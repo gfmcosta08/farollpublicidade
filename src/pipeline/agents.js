@@ -53,10 +53,13 @@ export async function runDesigner(llm, copy, styleContext) {
     ? parsed.image_prompts
     : copy.slides.map((s, i) => `Professional social media graphic, slide ${i + 1}: ${s.title}. ${styleContext}`);
 
+  const noTextSuffix = ' Absolutely no text, no letters, no words, no numbers, no typography, no captions, no watermarks in the image.';
+
   const images = [];
   for (let i = 0; i < Math.min(prompts.length, 6); i++) {
     try {
-      const b64 = await generateImage({ api_key: llm.api_key, prompt: prompts[i] });
+      const prompt = `${prompts[i].trim()}${noTextSuffix}`;
+      const b64 = await generateImage({ api_key: llm.api_key, prompt });
       images.push({ slide: i + 1, b64 });
     } catch (err) {
       images.push({ slide: i + 1, error: err.message });

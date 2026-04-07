@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import archiver from 'archiver';
 import { getDb } from '../db.js';
 import { startRun, runEmitters } from '../pipeline/runner.js';
 
@@ -85,6 +86,32 @@ router.get('/:id/stream', (req, res) => {
 
   emitter.on('event', handler);
   req.on('close', () => emitter.off('event', handler));
+});
+
+// ZIP com todas as imagens do run (um único download — evita bloqueio do navegador)
+router.get('/:id/outputs/images.zip', (req, res) => {
+  const runId = req.params.id;
+  const run = getDb().prepare('SELECT id FROM runs WHERE id = ?').get(runId);
+  if (!run) return res.status(404).json({ error: 'Run não encontrado' });
+
+  const images = getDb()
+    .prepare('SELECT filename, content FROM outputs WHERE run_id = ? AND type = ?')
+    .all(runId, 'image');
+
+  if (!images.length) return res.status(404).json({ error: 'Nenhuma imagem nesta execução' });
+
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', `attachment; filename="run-${runId}-imagens.zip"`);
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.on('error', (err) => {
+    if (!res.headersSent) res.status(500).json({ error: err.message });
+  });
+  archive.pipe(res);
+  for (const img of images) {
+    archive.append(Buffer.from(img.content, 'base64'), { name: img.filename });
+  }
+  void archive.finalize();
 });
 
 // Download a specific output file
