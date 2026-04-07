@@ -877,29 +877,55 @@ function renderProgSteps(state) {
   }).join('');
 }
 
+// Armazena o conteúdo da última execução para os botões de copiar
+window._copyData = {};
+
 function renderRunOutputs(runId, outputs) {
   const el = document.getElementById('prog-results');
   const outEl = document.getElementById('prog-outputs');
   if (!outputs?.length) { el.classList.add('hidden'); return; }
   el.classList.remove('hidden');
-  outEl.innerHTML = outputs.map(o => `
-    <div class="flex items-center justify-between p-3 rounded-xl bg-bg-surface border border-brand-gold/10">
-      <div class="flex items-center gap-3">
-        <span class="text-lg">${o.type==='image'?'🖼':'📄'}</span>
-        <div>
+
+  // Apenas imagens são mostradas na lista de arquivos
+  const images = outputs.filter(o => o.type === 'image');
+
+  if (images.length > 0) {
+    const downloadAllBtn = `
+      <button onclick="downloadAllImages('${runId}', ${JSON.stringify(images.map(i=>i.filename))})"
+        class="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-brand-gold/20 border border-brand-gold/30 text-brand-gold text-sm font-bold hover:bg-brand-gold/30 transition-colors">
+        🖼️ Baixar todas as imagens (${images.length})
+      </button>`;
+    const imageList = images.map(o => `
+      <div class="flex items-center justify-between p-3 rounded-xl bg-bg-surface border border-brand-gold/10">
+        <div class="flex items-center gap-3">
+          <span class="text-lg">🖼</span>
           <div class="font-semibold text-sm">${o.filename}</div>
-          <div class="text-xs text-text-muted capitalize">${o.type}</div>
         </div>
-      </div>
-      <a href="/api/runs/${runId}/outputs/${o.filename}" download="${o.filename}"
-        class="px-3 py-1.5 rounded-lg bg-brand-gold/20 text-brand-gold text-xs font-bold hover:bg-brand-gold/30">⬇ Baixar</a>
-    </div>`).join('');
+        <a href="/api/runs/${runId}/outputs/${o.filename}" download="${o.filename}"
+          class="px-3 py-1.5 rounded-lg bg-bg-surface border border-brand-gold/20 text-text-secondary text-xs hover:border-brand-gold/50">⬇</a>
+      </div>`).join('');
+    outEl.innerHTML = downloadAllBtn + imageList;
+  } else {
+    outEl.innerHTML = '<p class="text-text-muted text-sm">Nenhuma imagem gerada nesta execução.</p>';
+  }
 
   // Exibir conteúdo textual inline (copy-final.json ou copy.json)
-  const copyFile = outputs.find(o => o.filename === 'copy-final.json' || o.filename === 'copy.json');
-  if (copyFile) {
-    fetchAndDisplayCopy(runId, copyFile.filename);
-  }
+  const copyFile = outputs.find(o => o.filename === 'copy-final.json') ||
+                   outputs.find(o => o.filename === 'copy.json');
+  if (copyFile) fetchAndDisplayCopy(runId, copyFile.filename);
+}
+
+function downloadAllImages(runId, filenames) {
+  filenames.forEach((name, i) => {
+    setTimeout(() => {
+      const a = document.createElement('a');
+      a.href = `/api/runs/${runId}/outputs/${name}`;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }, i * 600);
+  });
 }
 
 async function fetchAndDisplayCopy(runId, filename) {
@@ -907,6 +933,14 @@ async function fetchAndDisplayCopy(runId, filename) {
     const res = await fetch(`/api/runs/${runId}/outputs/${filename}`);
     if (!res.ok) return;
     const data = await res.json();
+    window._copyData = {
+      caption: data.caption || '',
+      slides: data.slides || [],
+      hashtags: data.hashtags || [],
+    };
+
+    const existing = document.getElementById('prog-copy-preview');
+    if (existing) existing.remove();
 
     const container = document.createElement('div');
     container.id = 'prog-copy-preview';
@@ -914,70 +948,84 @@ async function fetchAndDisplayCopy(runId, filename) {
 
     // Caption
     if (data.caption) {
-      const captionBlock = `
-        <div class="rounded-xl border border-brand-gold/20 bg-bg-surface p-4">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-brand-gold uppercase tracking-wider">📝 Legenda</span>
-            <button onclick="copyToClipboard(this, ${JSON.stringify(data.caption)})"
-              class="px-3 py-1 rounded-lg text-xs bg-brand-gold/10 border border-brand-gold/20 text-brand-gold hover:bg-brand-gold/20">Copiar</button>
-          </div>
-          <p class="text-sm text-text-primary whitespace-pre-wrap">${escHtml(data.caption)}</p>
-        </div>`;
-      container.innerHTML += captionBlock;
+      const div = document.createElement('div');
+      div.className = 'rounded-xl border border-brand-gold/20 bg-bg-surface p-4';
+      div.innerHTML = `
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-brand-gold uppercase tracking-wider">📝 Legenda</span>
+          <button data-copy="caption" class="copy-btn px-3 py-1 rounded-lg text-xs bg-brand-gold/10 border border-brand-gold/20 text-brand-gold hover:bg-brand-gold/20">Copiar</button>
+        </div>
+        <p class="text-sm text-text-primary whitespace-pre-wrap">${escHtml(data.caption)}</p>`;
+      container.appendChild(div);
     }
 
     // Slides
     if (data.slides?.length) {
-      const allSlidesText = data.slides.map((s,i) => `Slide ${i+1}: ${s.title}\n${s.body}`).join('\n\n');
+      const div = document.createElement('div');
+      div.className = 'rounded-xl border border-brand-gold/20 bg-bg-surface p-4';
       const slidesHtml = data.slides.map((s, i) => `
         <div class="rounded-lg border border-brand-gold/10 bg-bg-surface/60 p-3">
           <div class="text-xs font-bold text-brand-gold mb-1">Slide ${i+1}: ${escHtml(s.title)}</div>
           <p class="text-sm text-text-secondary whitespace-pre-wrap">${escHtml(s.body)}</p>
         </div>`).join('');
-      const slidesBlock = `
-        <div class="rounded-xl border border-brand-gold/20 bg-bg-surface p-4">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-bold text-brand-gold uppercase tracking-wider">🎠 Slides (${data.slides.length})</span>
-            <button onclick="copyToClipboard(this, ${JSON.stringify(allSlidesText)})"
-              class="px-3 py-1 rounded-lg text-xs bg-brand-gold/10 border border-brand-gold/20 text-brand-gold hover:bg-brand-gold/20">Copiar tudo</button>
-          </div>
-          <div class="space-y-2">${slidesHtml}</div>
-        </div>`;
-      container.innerHTML += slidesBlock;
+      div.innerHTML = `
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold text-brand-gold uppercase tracking-wider">🎠 Slides (${data.slides.length})</span>
+          <button data-copy="slides" class="copy-btn px-3 py-1 rounded-lg text-xs bg-brand-gold/10 border border-brand-gold/20 text-brand-gold hover:bg-brand-gold/20">Copiar tudo</button>
+        </div>
+        <div class="space-y-2">${slidesHtml}</div>`;
+      container.appendChild(div);
     }
 
     // Hashtags
     if (data.hashtags?.length) {
-      const hashtagsText = data.hashtags.join(' ');
-      const hashtagsBlock = `
-        <div class="rounded-xl border border-brand-gold/20 bg-bg-surface p-4">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-brand-gold uppercase tracking-wider">🏷️ Hashtags</span>
-            <button onclick="copyToClipboard(this, ${JSON.stringify(hashtagsText)})"
-              class="px-3 py-1 rounded-lg text-xs bg-brand-gold/10 border border-brand-gold/20 text-brand-gold hover:bg-brand-gold/20">Copiar</button>
-          </div>
-          <p class="text-sm text-text-muted">${escHtml(hashtagsText)}</p>
-        </div>`;
-      container.innerHTML += hashtagsBlock;
+      const div = document.createElement('div');
+      div.className = 'rounded-xl border border-brand-gold/20 bg-bg-surface p-4';
+      div.innerHTML = `
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-brand-gold uppercase tracking-wider">🏷️ Hashtags</span>
+          <button data-copy="hashtags" class="copy-btn px-3 py-1 rounded-lg text-xs bg-brand-gold/10 border border-brand-gold/20 text-brand-gold hover:bg-brand-gold/20">Copiar</button>
+        </div>
+        <p class="text-sm text-text-muted">${escHtml(data.hashtags.join(' '))}</p>`;
+      container.appendChild(div);
     }
 
-    const resultsEl = document.getElementById('prog-results');
-    const existing = document.getElementById('prog-copy-preview');
-    if (existing) existing.remove();
-    resultsEl.appendChild(container);
+    // Delegar eventos de cópia ao container para evitar problemas de onclick inline
+    container.addEventListener('click', e => {
+      const btn = e.target.closest('.copy-btn');
+      if (!btn) return;
+      const key = btn.dataset.copy;
+      let text = '';
+      if (key === 'caption') text = window._copyData.caption;
+      else if (key === 'slides') text = window._copyData.slides.map((s,i) => `Slide ${i+1}: ${s.title}\n${s.body}`).join('\n\n');
+      else if (key === 'hashtags') text = window._copyData.hashtags.join(' ');
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = '✅ Copiado!';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+      }).catch(() => {
+        // Fallback para navegadores sem suporte à Clipboard API
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        const orig = btn.textContent;
+        btn.textContent = '✅ Copiado!';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+      });
+    });
+
+    document.getElementById('prog-results').appendChild(container);
   } catch (_) { /* silencioso */ }
 }
 
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function copyToClipboard(btn, text) {
-  navigator.clipboard.writeText(text).then(() => {
-    const orig = btn.textContent;
-    btn.textContent = '✅ Copiado!';
-    setTimeout(() => { btn.textContent = orig; }, 2000);
-  });
 }
 
 // ─── Schedules ────────────────────────────────────────────────────────────────
