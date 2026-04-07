@@ -80,5 +80,10 @@ export async function initDb() {
     );
   `);
 
+  const squadCols = db.prepare('PRAGMA table_info(squads)').all();
+  if (!squadCols.some((c) => c.name === 'openai_image_key')) {
+    db.exec('ALTER TABLE squads ADD COLUMN openai_image_key TEXT');
+  }
+
   console.log(`Banco inicializado em ${DB_PATH}`);
 }

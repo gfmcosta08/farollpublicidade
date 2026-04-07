@@ -13,7 +13,8 @@ function parseSquad(row) {
     auto_publish: Boolean(row.auto_publish),
     ig_token:    row.ig_token    ? '••••••' : null,
     ig_user_id:  row.ig_user_id  || null,
-    imgbb_key:   row.imgbb_key   ? '••••••' : null,
+    imgbb_key:          row.imgbb_key          ? '••••••' : null,
+    openai_image_key:   row.openai_image_key   ? '••••••' : null,
   };
 }
 
@@ -40,14 +41,15 @@ router.post('/', (req, res) => {
   const {
     name, description, domain, platforms, provider_id, model, agents,
     auto_publish, ig_token, ig_user_id, imgbb_key, ref_links, ref_notes,
+    openai_image_key,
   } = req.body;
   if (!name) return res.status(400).json({ error: 'name é obrigatório' });
 
   const result = getDb().prepare(`
     INSERT INTO squads
       (name, description, domain, platforms, provider_id, model, agents,
-       auto_publish, ig_token, ig_user_id, imgbb_key, ref_links, ref_notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       auto_publish, ig_token, ig_user_id, imgbb_key, ref_links, ref_notes, openai_image_key)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     name,
     description || '',
@@ -62,6 +64,7 @@ router.post('/', (req, res) => {
     imgbb_key ? encrypt(imgbb_key) : null,
     JSON.stringify(ref_links || []),
     ref_notes || null,
+    openai_image_key ? encrypt(openai_image_key) : null,
   );
   res.status(201).json({ id: result.lastInsertRowid });
 });
@@ -74,12 +77,19 @@ router.put('/:id', (req, res) => {
   const {
     name, description, domain, platforms, provider_id, model, agents,
     auto_publish, ig_token, ig_user_id, imgbb_key, ref_links, ref_notes,
+    openai_image_key,
   } = req.body;
+
+  let nextOpenaiImg = sq.openai_image_key;
+  if (openai_image_key !== undefined) {
+    nextOpenaiImg = openai_image_key ? encrypt(openai_image_key) : null;
+  }
 
   db.prepare(`
     UPDATE squads SET
       name=?, description=?, domain=?, platforms=?, provider_id=?, model=?, agents=?,
-      auto_publish=?, ig_token=?, ig_user_id=?, imgbb_key=?, ref_links=?, ref_notes=?
+      auto_publish=?, ig_token=?, ig_user_id=?, imgbb_key=?, ref_links=?, ref_notes=?,
+      openai_image_key=?
     WHERE id=?
   `).run(
     name         ?? sq.name,
@@ -95,6 +105,7 @@ router.put('/:id', (req, res) => {
     imgbb_key    ? encrypt(imgbb_key) : sq.imgbb_key,
     JSON.stringify(ref_links ?? JSON.parse(sq.ref_links || '[]')),
     ref_notes    ?? sq.ref_notes,
+    nextOpenaiImg,
     req.params.id,
   );
   res.json({ success: true });
@@ -116,7 +127,8 @@ export function getSquadFull(id) {
     auto_publish: Boolean(row.auto_publish),
     ig_token:     row.ig_token   ? decrypt(row.ig_token)   : null,
     ig_user_id:   row.ig_user_id || null,
-    imgbb_key:    row.imgbb_key  ? decrypt(row.imgbb_key)  : null,
+    imgbb_key:         row.imgbb_key         ? decrypt(row.imgbb_key)         : null,
+    openai_image_key:  row.openai_image_key  ? decrypt(row.openai_image_key) : null,
   };
 }
 
