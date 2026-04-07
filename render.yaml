@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: faroll-publici
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: DB_PATH
+        value: /data/faroll.db
+    disk:
+      name: faroll-data
+      mountPath: /data
+      sizeGB: 1

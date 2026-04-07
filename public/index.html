@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faroll Publicidade</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+      colors: {
+        brand: { gold:'#E2B007', pink:'#F4A6A6', teal:'#40E0D0', navy:'#1E2A38' },
+        bg: { primary:'#0a0a0f', secondary:'#12121a', tertiary:'#1a1a28', surface:'#222236' },
+        accent: { primary:'#E2B007', glow:'#FCEA85' },
+        text: { primary:'#f1f1f6', secondary:'#a0a0b8', muted:'#6b6b85' }
+      }
+    }}
+  }
+</script>
+<style>
+  body{background:#0a0a0f}
+  .glass{background:rgba(18,18,26,.7);backdrop-filter:blur(20px);border:1px solid rgba(226,176,7,.15)}
+  .card{background:rgba(26,26,40,.5);backdrop-filter:blur(10px);border:1px solid rgba(226,176,7,.1);transition:all .3s}
+  .card:hover{border-color:rgba(226,176,7,.35);box-shadow:0 8px 32px rgba(226,176,7,.08);transform:translateY(-2px)}
+  .card.sel{border-color:#E2B007;background:rgba(226,176,7,.08)}
+  input,textarea,select{transition:all .2s}
+  input:focus,textarea:focus,select:focus{border-color:#E2B007;box-shadow:0 0 0 3px rgba(226,176,7,.15);outline:none}
+  .btn{background:linear-gradient(135deg,#E2B007,#C99A06);transition:all .3s}
+  .btn:hover{background:linear-gradient(135deg,#FCEA85,#E2B007);box-shadow:0 4px 20px rgba(226,176,7,.4);transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .nav-item{cursor:pointer;transition:all .2s;border-radius:.75rem;padding:.5rem 1rem}
+  .nav-item:hover{background:rgba(226,176,7,.1)}
+  .nav-item.active{background:rgba(226,176,7,.15);color:#E2B007}
+  .tag{cursor:pointer;transition:all .2s}
+  .tag:hover{background:rgba(226,176,7,.2);border-color:#E2B007}
+  .tag.on{background:rgba(226,176,7,.3);border-color:#E2B007;color:#FCEA85}
+  ::-webkit-scrollbar{width:5px}
+  ::-webkit-scrollbar-track{background:#12121a}
+  ::-webkit-scrollbar-thumb{background:#333350;border-radius:3px}
+  ::-webkit-scrollbar-thumb:hover{background:#E2B007}
+  .fade{animation:fadeIn .3s ease-out}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .spin{animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .step-dot{width:8px;height:8px;border-radius:50%;background:#333350}
+  .step-dot.done{background:#E2B007}
+  .step-dot.active{background:#E2B007;box-shadow:0 0 8px #E2B007}
+  .progress-bar{transition:width .5s cubic-bezier(.4,0,.2,1)}
+</style>
+</head>
+<body class="min-h-screen text-text-primary font-sans flex">
+
+<!-- Sidebar -->
+<aside id="sidebar" class="glass w-60 min-h-screen flex flex-col fixed left-0 top-0 z-40 border-r border-brand-gold/20">
+  <div class="p-5 border-b border-brand-gold/20">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-gold to-brand-pink flex items-center justify-center text-lg">🔦</div>
+      <div>
+        <div class="font-bold text-sm bg-gradient-to-r from-brand-gold to-brand-pink bg-clip-text text-transparent">Faroll</div>
+        <div class="text-xs text-text-muted">Publicidade</div>
+      </div>
+    </div>
+  </div>
+  <nav class="flex-1 p-3 space-y-1 text-sm">
+    <div class="nav-item active" onclick="nav('dashboard')">🏠 Dashboard</div>
+    <div class="nav-item" onclick="nav('providers')">🔑 Provedores LLM</div>
+    <div class="nav-item" onclick="nav('wizard')">✨ Novo Squad</div>
+    <div class="nav-item" onclick="nav('squads')">📋 Meus Squads</div>
+    <div class="nav-item" onclick="nav('schedules')">🕐 Agendamentos</div>
+  </nav>
+  <div class="p-4 text-xs text-text-muted border-t border-brand-gold/20">v1.0 · Faroll Publicidade</div>
+</aside>
+
+<!-- Main -->
+<main class="ml-60 flex-1 min-h-screen">
+
+<!-- Page: Dashboard -->
+<div id="page-dashboard" class="page p-8 fade">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold">🏠 Dashboard</h1>
+    <p class="text-text-secondary text-sm mt-1">Visão geral da sua fábrica de conteúdo</p>
+  </div>
+  <div id="dash-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"></div>
+  <div class="card rounded-2xl p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-bold">⚡ Execuções Recentes</h2>
+      <button class="btn px-4 py-2 rounded-xl text-xs font-bold text-brand-navy" onclick="nav('squads')">+ Executar Squad</button>
+    </div>
+    <div id="dash-runs" class="text-sm text-text-muted">Carregando...</div>
+  </div>
+</div>
+
+<!-- Page: Providers -->
+<div id="page-providers" class="page hidden p-8 fade">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-bold">🔑 Provedores LLM</h1>
+      <p class="text-text-secondary text-sm mt-1">Gerencie suas chaves de API</p>
+    </div>
+    <button class="btn px-5 py-2.5 rounded-xl font-bold text-brand-navy text-sm" onclick="showAddProvider()">+ Adicionar</button>
+  </div>
+  <div id="providers-list" class="space-y-3 mb-6"></div>
+  <!-- Add provider form (hidden by default) -->
+  <div id="add-provider-form" class="hidden card rounded-2xl p-6 fade">
+    <h3 class="font-bold mb-4 text-brand-gold">Novo Provedor</h3>
+    <div class="grid sm:grid-cols-3 gap-4 mb-4">
+      <div onclick="selectProviderType('openai')"   id="pt-openai"   class="provider-type card sel rounded-xl p-4 text-center cursor-pointer">
+        <div class="text-2xl mb-1">🟢</div><div class="font-bold text-sm">OpenAI</div><div class="text-xs text-text-muted">GPT-4o / o1 / o3</div>
+      </div>
+      <div onclick="selectProviderType('anthropic')" id="pt-anthropic" class="provider-type card rounded-xl p-4 text-center cursor-pointer">
+        <div class="text-2xl mb-1">🟣</div><div class="font-bold text-sm">Anthropic</div><div class="text-xs text-text-muted">Claude 3.5 / 3.7 / 4</div>
+      </div>
+      <div onclick="selectProviderType('minimax')"   id="pt-minimax"   class="provider-type card rounded-xl p-4 text-center cursor-pointer">
+        <div class="text-2xl mb-1">🔵</div><div class="font-bold text-sm">MiniMax</div><div class="text-xs text-text-muted">Text-01 / abab6.5</div>
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1">Nome / Apelido</label>
+        <input id="prov-label" type="text" placeholder="Ex: OpenAI Pessoal"
+          class="w-full px-3 py-2.5 bg-bg-surface border border-brand-gold/20 rounded-xl text-sm text-text-primary placeholder-text-muted">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1">API Key *</label>
+        <div class="relative">
+          <input id="prov-key" type="password" placeholder="sk-... / sk-ant-... / ..."
+            class="w-full px-3 py-2.5 pr-10 bg-bg-surface border border-brand-gold/20 rounded-xl text-sm font-mono text-text-primary placeholder-text-muted">
+          <button onclick="toggleVis('prov-key')" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary">👁</button>
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button class="btn px-5 py-2.5 rounded-xl font-bold text-brand-navy text-sm" onclick="saveProvider()">Salvar Provedor</button>
+      <button class="px-5 py-2.5 rounded-xl border border-brand-gold/20 text-text-secondary text-sm hover:border-brand-gold/50" onclick="hideAddProvider()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Page: Wizard -->
+<div id="page-wizard" class="page hidden p-8 fade">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">✨ Novo Squad</h1>
+      <p class="text-text-secondary text-sm mt-1">Configure sua equipe de agentes</p>
+    </div>
+    <span id="wiz-step-label" class="text-xs font-mono text-text-muted px-3 py-1 rounded-full bg-bg-surface border border-brand-gold/20">Etapa 1 / 6</span>
+  </div>
+  <!-- Progress -->
+  <div class="mb-6">
+    <div class="h-1.5 bg-bg-surface rounded-full overflow-hidden">
+      <div id="wiz-bar" class="progress-bar h-full bg-gradient-to-r from-brand-gold to-brand-pink rounded-full" style="width:17%"></div>
+    </div>
+    <div class="flex justify-between mt-2 text-xs text-text-muted">
+      <span id="wl1" class="text-brand-gold font-medium">Objetivo</span>
+      <span id="wl2">LLM</span><span id="wl3">Instagram</span><span id="wl4">Referência</span><span id="wl5">Agentes</span><span id="wl6">Revisão</span>
+    </div>
+  </div>
+  <!-- Step panels -->
+  <div id="wiz-steps"></div>
+  <!-- Nav buttons -->
+  <div class="flex justify-between mt-6 pt-5 border-t border-brand-gold/20">
+    <button id="wiz-prev" onclick="wizPrev()" class="hidden px-5 py-2.5 rounded-xl border border-brand-gold/20 text-text-secondary text-sm hover:border-brand-gold hover:text-text-primary">← Voltar</button>
+    <div class="ml-auto">
+      <button id="wiz-next" onclick="wizNext()" class="btn px-7 py-2.5 rounded-xl font-bold text-brand-navy text-sm">Próximo →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Page: Squads -->
+<div id="page-squads" class="page hidden p-8 fade">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-bold">📋 Meus Squads</h1>
+      <p class="text-text-secondary text-sm mt-1">Gerencie e execute suas equipes</p>
+    </div>
+    <button class="btn px-5 py-2.5 rounded-xl font-bold text-brand-navy text-sm" onclick="nav('wizard')">+ Criar Squad</button>
+  </div>
+  <div id="squads-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+</div>
+
+<!-- Page: Schedules -->
+<div id="page-schedules" class="page hidden p-8 fade">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-bold">🕐 Agendamentos</h1>
+      <p class="text-text-secondary text-sm mt-1">Automatize execuções recorrentes</p>
+    </div>
+    <button class="btn px-5 py-2.5 rounded-xl font-bold text-brand-navy text-sm" onclick="showNewSchedule()">+ Agendar</button>
+  </div>
+  <div id="schedules-list" class="space-y-3 mb-6"></div>
+  <div id="new-schedule-form" class="hidden card rounded-2xl p-6 fade">
+    <h3 class="font-bold mb-4 text-brand-gold">Novo Agendamento</h3>
+    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1">Squad *</label>
+        <select id="sched-squad" class="w-full px-3 py-2.5 bg-bg-surface border border-brand-gold/20 rounded-xl text-sm text-text-primary">
+          <option value="">Selecione...</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1">Frequência</label>
+        <select id="sched-preset" class="w-full px-3 py-2.5 bg-bg-surface border border-brand-gold/20 rounded-xl text-sm text-text-primary" onchange="applyPreset()">
+          <option value="">Escolha um preset...</option>
+          <option value="0 9 * * *">Todo dia às 9h</option>
+          <option value="0 9 * * 1">Toda segunda às 9h</option>
+          <option value="0 9 * * 1,4">Seg e Qui às 9h</option>
+          <option value="0 9 * * 1-5">Dias úteis às 9h</option>
+          <option value="custom">Personalizado (cron)</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1">Expressão Cron</label>
+        <input id="sched-cron" type="text" placeholder="0 9 * * *"
+          class="w-full px-3 py-2.5 bg-bg-surface border border-brand-gold/20 rounded-xl text-sm font-mono text-text-primary placeholder-text-muted">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1">Tema padrão</label>
+        <input id="sched-topic" type="text" placeholder="Ex: Dica semanal do segmento"
+          class="w-full px-3 py-2.5 bg-bg-surface border border-brand-gold/20 rounded-xl text-sm text-text-primary placeholder-text-muted">
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button class="btn px-5 py-2.5 rounded-xl font-bold text-brand-navy text-sm" onclick="saveSchedule()">Salvar</button>
+      <button class="px-5 py-2.5 rounded-xl border border-brand-gold/20 text-text-secondary text-sm hover:border-brand-gold/50" onclick="hideNewSchedule()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- Modal: Run Squad -->
+<div id="modal-run" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.7)">
+  <div class="card rounded-2xl p-6 w-full max-w-lg fade">
+    <h3 class="font-bold text-lg mb-1 text-brand-gold">▶ Executar Squad</h3>
+    <p id="run-squad-name" class="text-text-secondary text-sm mb-5"></p>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1">Tema desta execução *</label>
+        <input id="run-topic" type="text" placeholder="Ex: 3 erros que todo vendedor comete"
+          class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-text-secondary mb-1">Contexto adicional (opcional)</label>
+        <textarea id="run-context" rows="2" placeholder="Dados, datas, produtos específicos..."
+          class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted resize-none text-sm"></textarea>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button class="btn px-6 py-2.5 rounded-xl font-bold text-brand-navy text-sm flex-1" onclick="confirmRun()">🚀 Iniciar</button>
+      <button class="px-5 py-2.5 rounded-xl border border-brand-gold/20 text-text-secondary text-sm" onclick="closeModal('modal-run')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Run Progress -->
+<div id="modal-progress" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.7)">
+  <div class="card rounded-2xl p-6 w-full max-w-2xl fade overflow-y-auto max-h-[90vh]">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold text-lg text-brand-gold">⚡ Executando Squad</h3>
+      <span id="prog-status" class="text-xs font-mono px-2 py-1 rounded-full bg-brand-gold/20 text-brand-gold">Em andamento</span>
+    </div>
+    <div id="prog-steps" class="space-y-2 mb-5"></div>
+    <div id="prog-results" class="hidden">
+      <div class="border-t border-brand-gold/20 pt-5 mb-4">
+        <h4 class="font-bold text-sm mb-3 text-brand-gold">📁 Arquivos Gerados</h4>
+        <div id="prog-outputs" class="space-y-2"></div>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button id="prog-close" onclick="closeModal('modal-progress')" class="hidden px-5 py-2.5 rounded-xl border border-brand-gold/20 text-text-secondary text-sm hover:border-brand-gold/50">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Confirm delete -->
+<div id="modal-confirm" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.7)">
+  <div class="card rounded-2xl p-6 w-full max-w-sm fade">
+    <h3 class="font-bold text-lg mb-2">⚠️ Confirmar exclusão</h3>
+    <p id="confirm-msg" class="text-text-secondary text-sm mb-5"></p>
+    <div class="flex gap-3">
+      <button id="confirm-ok" class="flex-1 px-4 py-2.5 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 font-bold text-sm hover:bg-red-500/30">Excluir</button>
+      <button onclick="closeModal('modal-confirm')" class="flex-1 px-4 py-2.5 rounded-xl border border-brand-gold/20 text-text-secondary text-sm hover:border-brand-gold/50">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────────────────────────
+const S = {
+  page: 'dashboard',
+  providers: [],
+  squads: [],
+  newProviderType: 'openai',
+  runSquadId: null,
+  wiz: { step: 1, data: { agents: ['pesquisador','redator','designer','revisor','estrategista','publisher'] } },
+};
+
+// ─── API helpers ─────────────────────────────────────────────────────────────
+const api = {
+  async get(path) {
+    const r = await fetch(path); if (!r.ok) throw new Error(await r.text()); return r.json();
+  },
+  async post(path, body) {
+    const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(await r.text()); return r.json();
+  },
+  async put(path, body) {
+    const r = await fetch(path, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(await r.text()); return r.json();
+  },
+  async del(path) {
+    const r = await fetch(path, { method:'DELETE' }); if (!r.ok) throw new Error(await r.text()); return r.json();
+  },
+};
+
+// ─── Navigation ──────────────────────────────────────────────────────────────
+async function nav(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.remove('hidden');
+  document.querySelector(`.nav-item[onclick="nav('${page}')"]`)?.classList.add('active');
+  S.page = page;
+
+  if (page === 'dashboard')  loadDashboard();
+  if (page === 'providers')  loadProviders();
+  if (page === 'wizard')     initWizard();
+  if (page === 'squads')     loadSquads();
+  if (page === 'schedules')  loadSchedules();
+}
+
+// ─── Dashboard ───────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const [squads, runs, schedules] = await Promise.all([
+      api.get('/api/squads'), api.get('/api/runs?limit=10'), api.get('/api/schedules'),
+    ]);
+    const completed = runs.filter(r => r.status === 'completed').length;
+    document.getElementById('dash-stats').innerHTML = [
+      stat('📋', squads.length, 'Squads'),
+      stat('⚡', runs.length,    'Execuções'),
+      stat('🕐', schedules.filter(s=>s.active).length, 'Ativos'),
+      stat('✅', completed, 'Concluídos'),
+    ].join('');
+
+    document.getElementById('dash-runs').innerHTML = runs.length === 0
+      ? '<p class="text-center text-text-muted py-8">Nenhuma execução ainda. <button onclick="nav(\'squads\')" class="text-brand-gold underline">Crie um squad</button>.</p>'
+      : `<table class="w-full text-xs"><thead><tr class="text-text-muted border-b border-brand-gold/10"><th class="text-left py-2">Squad</th><th class="text-left py-2">Tema</th><th class="text-left py-2">Status</th><th class="text-left py-2">Data</th></tr></thead><tbody>${
+          runs.map(r => `<tr class="border-b border-brand-gold/5 hover:bg-brand-gold/5">
+            <td class="py-2 pr-4 font-medium text-text-primary">${r.squad_name||'—'}</td>
+            <td class="py-2 pr-4 text-text-secondary truncate max-w-[160px]">${r.topic||'—'}</td>
+            <td class="py-2 pr-4">${statusBadge(r.status)}</td>
+            <td class="py-2 text-text-muted">${fmtDate(r.created_at)}</td>
+          </tr>`).join('')
+        }</tbody></table>`;
+  } catch(e) { showErr('dash-runs', e); }
+}
+
+function stat(icon, val, label) {
+  return `<div class="card rounded-2xl p-5"><div class="text-2xl mb-1">${icon}</div><div class="text-2xl font-bold text-brand-gold">${val}</div><div class="text-xs text-text-muted">${label}</div></div>`;
+}
+
+// ─── Providers ───────────────────────────────────────────────────────────────
+async function loadProviders() {
+  try {
+    S.providers = await api.get('/api/providers');
+    const el = document.getElementById('providers-list');
+    el.innerHTML = S.providers.length === 0
+      ? '<p class="text-text-muted text-sm">Nenhum provedor cadastrado. Adicione um para começar.</p>'
+      : S.providers.map(p => `
+        <div class="card rounded-xl p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-lg ${providerBg(p.name)}">${providerIcon(p.name)}</div>
+            <div>
+              <div class="font-semibold text-sm">${p.label}</div>
+              <div class="text-xs text-text-muted capitalize">${p.name} · Adicionado ${fmtDate(p.created_at)}</div>
+            </div>
+          </div>
+          <button onclick="delProvider(${p.id},'${p.label}')" class="px-3 py-1.5 rounded-lg text-xs bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20">🗑 Remover</button>
+        </div>`).join('');
+  } catch(e) { showErr('providers-list', e); }
+}
+
+function selectProviderType(t) {
+  S.newProviderType = t;
+  document.querySelectorAll('.provider-type').forEach(el => el.classList.remove('sel'));
+  document.getElementById(`pt-${t}`).classList.add('sel');
+}
+
+function showAddProvider() {
+  document.getElementById('add-provider-form').classList.remove('hidden');
+}
+function hideAddProvider() {
+  document.getElementById('add-provider-form').classList.add('hidden');
+  document.getElementById('prov-label').value = '';
+  document.getElementById('prov-key').value   = '';
+}
+
+async function saveProvider() {
+  const label = document.getElementById('prov-label').value.trim();
+  const key   = document.getElementById('prov-key').value.trim();
+  if (!key) return alert('API Key é obrigatória');
+  try {
+    await api.post('/api/providers', { name: S.newProviderType, label: label || S.newProviderType, api_key: key });
+    hideAddProvider();
+    loadProviders();
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
+function delProvider(id, label) {
+  confirm(`Remover provedor "${label}"?`, async () => {
+    await api.del(`/api/providers/${id}`);
+    loadProviders();
+  });
+}
+
+// ─── Wizard ──────────────────────────────────────────────────────────────────
+const WIZ_LABELS = ['Objetivo','LLM','Instagram','Referência','Agentes','Revisão'];
+const ALL_AGENTS = [
+  {id:'pesquisador',icon:'🔍',label:'Pesquisador',   desc:'Tendências e dados de mercado'},
+  {id:'estrategista',icon:'🎯',label:'Estrategista', desc:'Estratégia e ângulo editorial'},
+  {id:'redator',icon:'✍️',label:'Redator',           desc:'Copy persuasiva e legendas'},
+  {id:'designer',icon:'🎨',label:'Designer',         desc:'Imagens via DALL-E (OpenAI)'},
+  {id:'revisor',icon:'✅',label:'Revisor',           desc:'Revisão e polimento final'},
+  {id:'publisher',icon:'📤',label:'Publisher',       desc:'Publicação automática no Instagram'},
+];
+const DOMAINS = [
+  {v:'imobiliario',l:'🏢 Imobiliário / Construção'},
+  {v:'saude',l:'🏥 Saúde / Bem-estar'},
+  {v:'educacao',l:'📚 Educação / Cursos'},
+  {v:'tecnologia',l:'💻 Tecnologia / SaaS'},
+  {v:'alimentacao',l:'🍕 Alimentação / Restaurantes'},
+  {v:'moda',l:'👗 Moda / Vestuário'},
+  {v:'servicos',l:'🔧 Serviços Gerais'},
+  {v:'ecommerce',l:'🛒 E-commerce / Varejo'},
+  {v:'outro',l:'📌 Outro'},
+];
+const PLATFORMS = ['📸 Instagram Feed','🎬 Instagram Reels','💬 Instagram Stories','👤 Facebook','💼 LinkedIn','🔍 Google Ads'];
+
+function initWizard() {
+  S.wiz = { step: 1, data: { agents: ['pesquisador','redator','designer','revisor','estrategista','publisher'], platforms:['📸 Instagram Feed'], ref_links:[''] } };
+  renderWizStep();
+}
+
+function renderWizStep() {
+  const s = S.wiz.step;
+  document.getElementById('wiz-step-label').textContent = `Etapa ${s} / 6`;
+  document.getElementById('wiz-bar').style.width = `${Math.round(s/6*100)}%`;
+  WIZ_LABELS.forEach((l,i) => {
+    const el = document.getElementById(`wl${i+1}`);
+    el.className = i+1===s ? 'text-brand-gold font-medium' : 'text-text-muted';
+  });
+  document.getElementById('wiz-prev').classList.toggle('hidden', s===1);
+  document.getElementById('wiz-next').textContent = s===6 ? '✅ Criar Squad' : 'Próximo →';
+
+  const d = S.wiz.data;
+  const steps = [
+    // Step 1
+    `<div class="grid lg:grid-cols-3 gap-6 fade">
+      <div class="lg:col-span-2 space-y-5">
+        <div class="card rounded-2xl p-6">
+          <h2 class="text-lg font-bold text-brand-gold mb-4">🎯 Objetivo do Squad</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1">Nome do Squad *</label>
+              <input id="wf-name" type="text" value="${d.name||''}" placeholder="Ex: Fábrica de Carrosséis Instagram"
+                class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1">Descrição *</label>
+              <textarea id="wf-desc" rows="3" placeholder="Descreva o objetivo principal do squad..."
+                class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted resize-none text-sm">${d.description||''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1">Segmento</label>
+              <select id="wf-domain" class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary">
+                ${DOMAINS.map(x=>`<option value="${x.v}" ${d.domain===x.v?'selected':''}>${x.l}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card rounded-2xl p-6">
+          <h3 class="font-semibold mb-3">🎨 Plataformas Alvo</h3>
+          <div class="flex flex-wrap gap-2">
+            ${PLATFORMS.map(p=>`<span class="tag px-3 py-1.5 rounded-lg border text-sm ${(d.platforms||[]).includes(p)?'on bg-bg-surface border-brand-gold/20':'bg-bg-surface border-brand-gold/20 text-text-secondary'}" onclick="togglePlatform(this,'${p}')">${p}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-5 h-fit sticky top-8">
+        <h3 class="font-bold mb-3 text-sm flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-brand-gold inline-block"></span>Preview</h3>
+        <div class="space-y-3 text-xs">
+          <div><span class="text-text-muted">Nome:</span><p class="text-text-primary font-medium mt-0.5">${d.name||'—'}</p></div>
+          <div><span class="text-text-muted">Segmento:</span><p class="text-brand-gold mt-0.5">${d.domain||'outro'}</p></div>
+          <div><span class="text-text-muted">Plataformas:</span><p class="text-text-secondary mt-0.5">${(d.platforms||[]).join(', ')||'—'}</p></div>
+        </div>
+      </div>
+    </div>`,
+
+    // Step 2
+    `<div class="grid lg:grid-cols-3 gap-6 fade">
+      <div class="lg:col-span-2">
+        <div class="card rounded-2xl p-6">
+          <h2 class="text-lg font-bold text-brand-gold mb-4">🤖 Provedor LLM</h2>
+          <div id="wiz-providers-list" class="space-y-2 mb-5">
+            ${S.providers.length===0
+              ? `<div class="p-4 rounded-xl bg-bg-surface border border-brand-gold/20 text-sm text-text-muted">Nenhum provedor cadastrado. <button onclick="nav('providers')" class="text-brand-gold underline">Cadastre um primeiro</button>.</div>`
+              : S.providers.map(p=>`
+                  <div class="provider-pick card rounded-xl p-4 flex items-center gap-3 cursor-pointer ${d.provider_id===p.id?'sel':''}" onclick="pickProvider(${p.id},'${p.name}')">
+                    <div class="text-xl">${providerIcon(p.name)}</div>
+                    <div class="flex-1">
+                      <div class="font-semibold text-sm">${p.label}</div>
+                      <div class="text-xs text-text-muted capitalize">${p.name}</div>
+                    </div>
+                    ${d.provider_id===p.id?'<span class="text-brand-gold text-lg">✓</span>':''}
+                  </div>`).join('')}
+          </div>
+          <div id="wiz-model-row" class="${d.provider_id?'':'hidden'}">
+            <label class="block text-xs font-medium text-text-secondary mb-1">Modelo</label>
+            <select id="wf-model" class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary text-sm"></select>
+          </div>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-5 h-fit sticky top-8">
+        <h3 class="font-bold mb-3 text-sm">⚡ Configuração</h3>
+        <div class="space-y-3 text-xs">
+          <div><span class="text-text-muted">Provedor:</span><p class="text-brand-gold mt-0.5">${d.provider_name||'—'}</p></div>
+          <div><span class="text-text-muted">Modelo:</span><p class="text-text-primary mt-0.5">${d.model||'—'}</p></div>
+        </div>
+      </div>
+    </div>`,
+
+    // Step 3
+    `<div class="grid lg:grid-cols-3 gap-6 fade">
+      <div class="lg:col-span-2">
+        <div class="card rounded-2xl p-6">
+          <div class="flex items-start justify-between mb-5">
+            <div><h2 class="text-lg font-bold text-brand-gold">📱 Instagram</h2><p class="text-text-secondary text-xs mt-1">Configure para publicação automática (opcional).</p></div>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <span class="text-xs text-text-secondary">Publicação automática</span>
+              <div class="relative">
+                <input type="checkbox" id="wf-autopub" ${d.auto_publish?'checked':''} class="sr-only peer" onchange="toggleAutopub()">
+                <div class="w-10 h-6 bg-bg-surface rounded-full peer peer-checked:bg-brand-gold/30 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-brand-gold after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-4"></div>
+              </div>
+            </label>
+          </div>
+          <div id="wf-ig-fields" class="${d.auto_publish?'':'opacity-40 pointer-events-none'} space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1">Access Token</label>
+              <input id="wf-ig-token" type="password" value="${d.ig_token||''}" placeholder="EAA..."
+                class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted font-mono text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1">User ID</label>
+              <input id="wf-ig-user" type="text" value="${d.ig_user_id||''}" placeholder="178414..."
+                class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted font-mono text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1">ImgBB Key (necessário para hospedar imagens)</label>
+              <input id="wf-imgbb" type="password" value="${d.imgbb_key||''}" placeholder="f1a2b3..."
+                class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted font-mono text-xs">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-5 h-fit sticky top-8 text-xs text-text-muted space-y-2">
+        <p class="font-semibold text-text-secondary">💡 Como obter o token?</p>
+        <p>1. Acesse <a href="https://developers.facebook.com" target="_blank" class="text-brand-gold underline">developers.facebook.com</a></p>
+        <p>2. Crie um app → Instagram Product</p>
+        <p>3. Gere o Access Token de longa duração</p>
+        <p class="pt-2">O ImgBB hospeda as imagens para que o Instagram consiga carregá-las. Cadastre em <a href="https://imgbb.com" target="_blank" class="text-brand-gold underline">imgbb.com</a>.</p>
+      </div>
+    </div>`,
+
+    // Step 4
+    `<div class="grid lg:grid-cols-3 gap-6 fade">
+      <div class="lg:col-span-2">
+        <div class="card rounded-2xl p-6">
+          <h2 class="text-lg font-bold text-brand-gold mb-1">💡 Referências de Estilo</h2>
+          <p class="text-text-secondary text-xs mb-5">Cole links de perfis ou posts do Instagram para usar como modelo visual e de linguagem.</p>
+          <div id="ref-links-wrap" class="space-y-2 mb-4"></div>
+          <button onclick="addRefLink()" class="text-xs text-brand-gold border border-brand-gold/30 px-3 py-1.5 rounded-lg hover:bg-brand-gold/10">+ Adicionar link</button>
+          <div class="mt-4 p-4 rounded-xl bg-brand-gold/5 border border-brand-gold/20 text-xs text-text-secondary space-y-1">
+            <p class="font-semibold text-brand-gold">🔍 O que os agentes vão analisar:</p>
+            <p>✅ Estilo visual — cores, composição, fontes</p>
+            <p>✅ Tom de voz — formal, educativo, descontraído</p>
+            <p>✅ Estrutura de conteúdo — hooks, organização dos slides</p>
+          </div>
+          <div class="mt-4">
+            <label class="block text-xs font-medium text-text-secondary mb-1">Notas sobre o estilo desejado</label>
+            <textarea id="wf-ref-notes" rows="2" placeholder="Ex: Gosto de cores vibrantes, hooks com dados, linguagem direta..."
+              class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted resize-none text-sm">${d.ref_notes||''}</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-5 h-fit sticky top-8">
+        <h3 class="font-bold mb-3 text-sm">🔗 Referências</h3>
+        <p class="text-xs text-text-muted">${(d.ref_links||[]).filter(l=>l.trim()).length} link(s) adicionado(s)</p>
+      </div>
+    </div>`,
+
+    // Step 5
+    `<div class="fade">
+      <div class="card rounded-2xl p-6">
+        <h2 class="text-lg font-bold text-brand-gold mb-1">👥 Equipe de Agentes</h2>
+        <p class="text-text-secondary text-xs mb-5">Selecione os agentes que vão trabalhar neste squad.</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${ALL_AGENTS.map(a=>`
+            <div class="card ${(d.agents||[]).includes(a.id)?'sel':''} rounded-xl p-4 cursor-pointer" onclick="toggleAgent('${a.id}',this)" data-agent="${a.id}">
+              <div class="flex items-start justify-between mb-2">
+                <span class="text-2xl">${a.icon}</span>
+                <div class="w-5 h-5 rounded-full border-2 ${(d.agents||[]).includes(a.id)?'border-brand-gold bg-brand-gold':'border-text-muted'} flex items-center justify-center text-white text-xs">${(d.agents||[]).includes(a.id)?'✓':''}</div>
+              </div>
+              <div class="font-bold text-sm">${a.label}</div>
+              <div class="text-xs text-text-secondary mt-0.5">${a.desc}</div>
+            </div>`).join('')}
+        </div>
+        <p class="text-xs text-text-muted mt-4">💡 Designer requer provedor OpenAI (usa DALL-E). Publisher requer Instagram configurado.</p>
+      </div>
+    </div>`,
+
+    // Step 6 — Review
+    `<div class="fade">
+      <div class="card rounded-2xl p-6 mb-5">
+        <h2 class="text-lg font-bold text-brand-gold mb-5">📋 Revisão Final</h2>
+        <div class="grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+          <div><span class="text-xs text-text-muted uppercase tracking-wider">Nome</span><p class="font-semibold mt-0.5">${d.name||'—'}</p></div>
+          <div><span class="text-xs text-text-muted uppercase tracking-wider">Segmento</span><p class="mt-0.5 text-text-secondary">${d.domain||'—'}</p></div>
+          <div><span class="text-xs text-text-muted uppercase tracking-wider">Provedor</span><p class="mt-0.5 text-brand-gold">${d.provider_name||'—'}</p></div>
+          <div><span class="text-xs text-text-muted uppercase tracking-wider">Modelo</span><p class="mt-0.5 text-text-secondary">${d.model||'—'}</p></div>
+          <div class="sm:col-span-2"><span class="text-xs text-text-muted uppercase tracking-wider">Plataformas</span><p class="mt-0.5 text-text-secondary">${(d.platforms||[]).join(', ')||'—'}</p></div>
+          <div class="sm:col-span-2"><span class="text-xs text-text-muted uppercase tracking-wider">Agentes</span>
+            <div class="flex flex-wrap gap-1 mt-1">${(d.agents||[]).map(a=>{ const ag=ALL_AGENTS.find(x=>x.id===a); return `<span class="px-2 py-0.5 rounded bg-brand-gold/20 text-brand-gold text-xs">${ag?ag.icon+' '+ag.label:a}</span>`; }).join('')}</div>
+          </div>
+          <div class="sm:col-span-2"><span class="text-xs text-text-muted uppercase tracking-wider">Publicação automática</span><p class="mt-0.5 ${d.auto_publish?'text-green-400':'text-text-muted'}">${d.auto_publish?'✅ Ativada':'⬜ Desativada'}</p></div>
+          ${(d.ref_links||[]).filter(l=>l.trim()).length>0?`<div class="sm:col-span-2"><span class="text-xs text-text-muted uppercase tracking-wider">Referências</span><p class="mt-0.5 text-text-secondary text-xs">${(d.ref_links||[]).filter(l=>l.trim()).join(', ')}</p></div>`:''}
+        </div>
+      </div>
+    </div>`,
+  ];
+  document.getElementById('wiz-steps').innerHTML = steps[s-1];
+  if (s===4) renderRefLinks();
+  if (s===2 && d.provider_id) loadWizModels(d.provider_id, d.model);
+}
+
+function wizPrev() { if(S.wiz.step>1){ collectStep(); S.wiz.step--; renderWizStep(); } }
+async function wizNext() {
+  collectStep();
+  if (S.wiz.step === 6) { await createSquad(); return; }
+  S.wiz.step++;
+  renderWizStep();
+}
+
+function collectStep() {
+  const d = S.wiz.data;
+  const s = S.wiz.step;
+  if (s===1) {
+    d.name        = document.getElementById('wf-name')?.value?.trim();
+    d.description = document.getElementById('wf-desc')?.value?.trim();
+    d.domain      = document.getElementById('wf-domain')?.value;
+  }
+  if (s===2) { d.model = document.getElementById('wf-model')?.value; }
+  if (s===3) {
+    d.auto_publish = document.getElementById('wf-autopub')?.checked;
+    d.ig_token     = document.getElementById('wf-ig-token')?.value?.trim();
+    d.ig_user_id   = document.getElementById('wf-ig-user')?.value?.trim();
+    d.imgbb_key    = document.getElementById('wf-imgbb')?.value?.trim();
+  }
+  if (s===4) {
+    d.ref_links = Array.from(document.querySelectorAll('.ref-link')).map(i=>i.value.trim());
+    d.ref_notes = document.getElementById('wf-ref-notes')?.value?.trim();
+  }
+}
+
+async function createSquad() {
+  const d = S.wiz.data;
+  if (!d.name) { alert('Nome do squad é obrigatório (etapa 1)'); return; }
+  if (!d.provider_id) { alert('Selecione um provedor LLM (etapa 2)'); return; }
+  try {
+    document.getElementById('wiz-next').disabled = true;
+    document.getElementById('wiz-next').textContent = '⏳ Criando...';
+    await api.post('/api/squads', d);
+    nav('squads');
+  } catch(e) {
+    alert('Erro ao criar squad: ' + e.message);
+    document.getElementById('wiz-next').disabled = false;
+    document.getElementById('wiz-next').textContent = '✅ Criar Squad';
+  }
+}
+
+function togglePlatform(el, p) {
+  el.classList.toggle('on');
+  const d = S.wiz.data;
+  d.platforms = d.platforms || [];
+  if (d.platforms.includes(p)) d.platforms = d.platforms.filter(x=>x!==p);
+  else d.platforms.push(p);
+}
+
+function toggleAutopub() {
+  const checked = document.getElementById('wf-autopub').checked;
+  S.wiz.data.auto_publish = checked;
+  document.getElementById('wf-ig-fields').className = checked ? 'space-y-4' : 'opacity-40 pointer-events-none space-y-4';
+}
+
+function toggleAgent(id, el) {
+  el.classList.toggle('sel');
+  const d = S.wiz.data;
+  const on = el.classList.contains('sel');
+  const circle = el.querySelector('div.w-5');
+  if (on) { d.agents.push(id); circle.className = 'w-5 h-5 rounded-full border-2 border-brand-gold bg-brand-gold flex items-center justify-center text-white text-xs'; circle.textContent='✓'; }
+  else    { d.agents = d.agents.filter(a=>a!==id); circle.className = 'w-5 h-5 rounded-full border-2 border-text-muted flex items-center justify-center text-white text-xs'; circle.textContent=''; }
+}
+
+async function pickProvider(id, name) {
+  S.wiz.data.provider_id   = id;
+  S.wiz.data.provider_name = S.providers.find(p=>p.id===id)?.label || name;
+  document.querySelectorAll('.provider-pick').forEach(el => { el.classList.remove('sel'); el.querySelector('span.text-brand-gold')?.remove(); });
+  const picked = document.querySelector(`.provider-pick[onclick="pickProvider(${id},'${name}')"]`);
+  if (picked) { picked.classList.add('sel'); picked.insertAdjacentHTML('beforeend','<span class="text-brand-gold text-lg">✓</span>'); }
+  document.getElementById('wiz-model-row')?.classList.remove('hidden');
+  await loadWizModels(id, S.wiz.data.model);
+}
+
+async function loadWizModels(providerId, currentModel) {
+  const select = document.getElementById('wf-model');
+  if (!select) return;
+  try {
+    const models = await api.get(`/api/providers/${providerId}/models`);
+    select.innerHTML = models.map(m=>`<option value="${m.id}" ${currentModel===m.id?'selected':''}>${m.label}</option>`).join('');
+    if (!currentModel) S.wiz.data.model = models[0]?.id;
+  } catch { select.innerHTML = '<option value="">Erro ao carregar modelos</option>'; }
+}
+
+function renderRefLinks() {
+  const links = S.wiz.data.ref_links || [''];
+  const wrap = document.getElementById('ref-links-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = links.map((l,i) => `
+    <div class="flex gap-2">
+      <input type="url" value="${l}" class="ref-link w-full px-3 py-2.5 bg-bg-surface border border-brand-gold/20 rounded-xl text-xs font-mono text-text-primary placeholder-text-muted" placeholder="https://www.instagram.com/perfil_ou_post/" oninput="S.wiz.data.ref_links[${i}]=this.value">
+      ${links.length>1?`<button onclick="removeRefLink(${i})" class="px-2.5 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">✕</button>`:''}
+    </div>`).join('');
+}
+
+function addRefLink() {
+  S.wiz.data.ref_links = S.wiz.data.ref_links || [];
+  S.wiz.data.ref_links.push('');
+  renderRefLinks();
+}
+
+function removeRefLink(i) {
+  S.wiz.data.ref_links.splice(i,1);
+  renderRefLinks();
+}
+
+// ─── Squads ───────────────────────────────────────────────────────────────────
+async function loadSquads() {
+  try {
+    S.squads = await api.get('/api/squads');
+    const grid = document.getElementById('squads-grid');
+    grid.innerHTML = S.squads.length===0
+      ? '<p class="text-text-muted text-sm col-span-3 py-8 text-center">Nenhum squad criado ainda. <button onclick="nav(\'wizard\')" class="text-brand-gold underline">Crie o primeiro</button>.</p>'
+      : S.squads.map(sq=>`
+          <div class="card rounded-2xl p-5 flex flex-col">
+            <div class="flex items-start justify-between mb-3">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold/30 to-brand-pink/30 flex items-center justify-center text-xl">🤖</div>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold capitalize">${sq.domain}</span>
+            </div>
+            <h3 class="font-bold mb-1">${sq.name}</h3>
+            <p class="text-xs text-text-secondary flex-1 mb-3 line-clamp-2">${sq.description||'Sem descrição'}</p>
+            <div class="flex flex-wrap gap-1 mb-4">
+              ${(sq.agents||[]).map(a=>{ const ag=ALL_AGENTS.find(x=>x.id===a); return `<span class="text-xs px-1.5 py-0.5 rounded bg-bg-surface text-text-muted">${ag?ag.icon:'🤖'}</span>`; }).join('')}
+            </div>
+            <div class="flex gap-2">
+              <button onclick="openRunModal(${sq.id},'${sq.name.replace(/'/g,"\\'")}',${sq.provider_id||0})"
+                class="btn flex-1 py-2 rounded-xl font-bold text-brand-navy text-xs">▶ Executar</button>
+              <button onclick="delSquad(${sq.id},'${sq.name.replace(/'/g,"\\'")}') "
+                class="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs hover:bg-red-500/20">🗑</button>
+            </div>
+          </div>`).join('');
+  } catch(e) { showErr('squads-grid', e); }
+}
+
+function delSquad(id, name) {
+  confirm(`Excluir squad "${name}" e todos seus dados?`, async () => {
+    await api.del(`/api/squads/${id}`);
+    loadSquads();
+  });
+}
+
+// ─── Run Modal ────────────────────────────────────────────────────────────────
+function openRunModal(squadId, squadName, providerId) {
+  if (!providerId) return alert('Este squad não tem provedor LLM configurado. Edite-o primeiro.');
+  S.runSquadId = squadId;
+  document.getElementById('run-squad-name').textContent = `Squad: ${squadName}`;
+  document.getElementById('run-topic').value = '';
+  document.getElementById('run-context').value = '';
+  document.getElementById('modal-run').classList.remove('hidden');
+}
+
+async function confirmRun() {
+  const topic = document.getElementById('run-topic').value.trim();
+  if (!topic) return alert('Informe o tema da execução');
+  const ctx = document.getElementById('run-context').value.trim();
+  closeModal('modal-run');
+  try {
+    const { run_id } = await api.post('/api/runs', { squad_id: S.runSquadId, topic, additional_context: ctx });
+    openProgressModal(run_id);
+  } catch(e) { alert('Erro ao iniciar: ' + e.message); }
+}
+
+// ─── Progress Modal ───────────────────────────────────────────────────────────
+const STEP_LABELS = {
+  references: '🔗 Referências de Estilo',
+  pesquisador: '🔍 Pesquisador',
+  estrategista: '🎯 Estrategista',
+  redator: '✍️ Redator',
+  designer: '🎨 Designer (DALL-E)',
+  revisor: '✅ Revisor',
+  publisher: '📤 Publisher',
+};
+
+function openProgressModal(runId) {
+  const modal = document.getElementById('modal-progress');
+  modal.classList.remove('hidden');
+  document.getElementById('prog-status').textContent = 'Em andamento...';
+  document.getElementById('prog-status').className = 'text-xs font-mono px-2 py-1 rounded-full bg-brand-gold/20 text-brand-gold';
+  document.getElementById('prog-steps').innerHTML = '';
+  document.getElementById('prog-results').classList.add('hidden');
+  document.getElementById('prog-close').classList.add('hidden');
+
+  const stepsState = {};
+  const sse = new EventSource(`/api/runs/${runId}/stream`);
+
+  sse.onmessage = (e) => {
+    const ev = JSON.parse(e.data);
+    if (ev.type === 'progress') {
+      const key = ev.step;
+      stepsState[key] = ev;
+      renderProgSteps(stepsState);
+    } else if (ev.type === 'complete') {
+      sse.close();
+      document.getElementById('prog-status').textContent = '✅ Concluído!';
+      document.getElementById('prog-status').className = 'text-xs font-mono px-2 py-1 rounded-full bg-green-500/20 text-green-400';
+      renderRunOutputs(runId, ev.outputs);
+      document.getElementById('prog-close').classList.remove('hidden');
+      if (S.page === 'dashboard') loadDashboard();
+    } else if (ev.type === 'error') {
+      sse.close();
+      document.getElementById('prog-status').textContent = '❌ Erro';
+      document.getElementById('prog-status').className = 'text-xs font-mono px-2 py-1 rounded-full bg-red-500/20 text-red-400';
+      document.getElementById('prog-steps').innerHTML += `<div class="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">${ev.message}</div>`;
+      document.getElementById('prog-close').classList.remove('hidden');
+    }
+  };
+  sse.onerror = () => {
+    sse.close();
+    document.getElementById('prog-status').textContent = 'Conexão perdida';
+  };
+}
+
+function renderProgSteps(state) {
+  document.getElementById('prog-steps').innerHTML = Object.entries(state).map(([key, ev]) => {
+    const icon = ev.status==='done'?'✅':ev.status==='error'?'❌':ev.status==='skipped'?'⏭':ev.status==='warning'?'⚠️':'<span class="spin inline-block">⏳</span>';
+    return `<div class="flex items-start gap-3 p-3 rounded-xl ${ev.status==='done'?'bg-green-500/5 border border-green-500/10':ev.status==='error'?'bg-red-500/5 border border-red-500/10':'bg-bg-surface border border-brand-gold/10'}">
+      <span class="text-sm">${icon}</span>
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold text-sm">${STEP_LABELS[key]||key}</div>
+        ${ev.message?`<div class="text-xs text-text-muted mt-0.5">${ev.message}</div>`:''}
+        ${ev.preview?`<div class="text-xs text-text-secondary mt-1 truncate">${ev.preview}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRunOutputs(runId, outputs) {
+  const el = document.getElementById('prog-results');
+  const outEl = document.getElementById('prog-outputs');
+  if (!outputs?.length) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  outEl.innerHTML = outputs.map(o => `
+    <div class="flex items-center justify-between p-3 rounded-xl bg-bg-surface border border-brand-gold/10">
+      <div class="flex items-center gap-3">
+        <span class="text-lg">${o.type==='image'?'🖼':'📄'}</span>
+        <div>
+          <div class="font-semibold text-sm">${o.filename}</div>
+          <div class="text-xs text-text-muted capitalize">${o.type}</div>
+        </div>
+      </div>
+      <a href="/api/runs/${runId}/outputs/${o.filename}" download="${o.filename}"
+        class="px-3 py-1.5 rounded-lg bg-brand-gold/20 text-brand-gold text-xs font-bold hover:bg-brand-gold/30">⬇ Baixar</a>
+    </div>`).join('');
+}
+
+// ─── Schedules ────────────────────────────────────────────────────────────────
+async function loadSchedules() {
+  try {
+    const rows = await api.get('/api/schedules');
+    const el = document.getElementById('schedules-list');
+    el.innerHTML = rows.length===0
+      ? '<p class="text-text-muted text-sm">Nenhum agendamento ainda.</p>'
+      : rows.map(s=>`
+          <div class="card rounded-xl p-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-9 h-9 rounded-lg ${s.active?'bg-green-500/20 text-green-400':'bg-bg-surface text-text-muted'} flex items-center justify-center">🕐</div>
+              <div>
+                <div class="font-semibold text-sm">${s.squad_name||'Squad removido'}</div>
+                <div class="text-xs text-text-muted font-mono">${s.cron_expr} · ${s.topic||'Sem tema'}</div>
+                ${s.last_run?`<div class="text-xs text-text-muted">Último: ${fmtDate(s.last_run)}</div>`:''}
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="toggleSchedule(${s.id},${s.active})"
+                class="px-3 py-1.5 rounded-lg text-xs border ${s.active?'border-green-500/30 text-green-400 bg-green-500/10 hover:bg-green-500/20':'border-brand-gold/20 text-text-muted hover:border-brand-gold/50'}">${s.active?'⏸ Pausar':'▶ Ativar'}</button>
+              <button onclick="delSchedule(${s.id})" class="px-3 py-1.5 rounded-lg text-xs bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20">🗑</button>
+            </div>
+          </div>`).join('');
+  } catch(e) { showErr('schedules-list', e); }
+}
+
+async function showNewSchedule() {
+  const squads = await api.get('/api/squads');
+  document.getElementById('sched-squad').innerHTML = squads.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('new-schedule-form').classList.remove('hidden');
+}
+function hideNewSchedule() { document.getElementById('new-schedule-form').classList.add('hidden'); }
+
+function applyPreset() {
+  const v = document.getElementById('sched-preset').value;
+  if (v && v !== 'custom') document.getElementById('sched-cron').value = v;
+}
+
+async function saveSchedule() {
+  const squad_id  = document.getElementById('sched-squad').value;
+  const cron_expr = document.getElementById('sched-cron').value.trim();
+  const topic     = document.getElementById('sched-topic').value.trim();
+  if (!squad_id || !cron_expr) return alert('Squad e expressão cron são obrigatórios');
+  try {
+    await api.post('/api/schedules', { squad_id: Number(squad_id), cron_expr, topic });
+    hideNewSchedule();
+    loadSchedules();
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
+async function toggleSchedule(id, active) {
+  await api.put(`/api/schedules/${id}`, { active: !active });
+  loadSchedules();
+}
+
+async function delSchedule(id) {
+  confirm('Excluir este agendamento?', async () => {
+    await api.del(`/api/schedules/${id}`);
+    loadSchedules();
+  });
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+function toggleVis(id) { const el=document.getElementById(id); el.type=el.type==='password'?'text':'password'; }
+function showErr(id, e) { document.getElementById(id).innerHTML=`<p class="text-red-400 text-sm">${e.message}</p>`; }
+function fmtDate(d) { if(!d) return '—'; return new Date(d).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+function statusBadge(s) {
+  const m = {completed:'text-green-400 bg-green-500/10',running:'text-brand-gold bg-brand-gold/10',failed:'text-red-400 bg-red-500/10',pending:'text-text-muted bg-bg-surface'};
+  const t = {completed:'✅ Concluído',running:'⏳ Rodando',failed:'❌ Falha',pending:'⏸ Pendente'};
+  return `<span class="px-1.5 py-0.5 rounded text-xs ${m[s]||m.pending}">${t[s]||s}</span>`;
+}
+function providerIcon(n) { return {openai:'🟢',anthropic:'🟣',minimax:'🔵'}[n]||'🤖'; }
+function providerBg(n) { return {openai:'bg-green-500/15',anthropic:'bg-purple-500/15',minimax:'bg-blue-500/15'}[n]||'bg-bg-surface'; }
+
+function confirm(msg, cb) {
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('modal-confirm').classList.remove('hidden');
+  document.getElementById('confirm-ok').onclick = async () => { closeModal('modal-confirm'); await cb(); };
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+(async () => {
+  S.providers = await api.get('/api/providers').catch(()=>[]);
+  nav('dashboard');
+})();
+</script>
+</body>
+</html>

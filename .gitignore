@@ -1,0 +1,8 @@
+node_modules/
+data/
+.env
+*.db
+*.db-shm
+*.db-wal
+opensquad-master/
+OPENSQUAD-TEXTO-COMPLETO-PARA-COLAR.txt

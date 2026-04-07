@@ -1,0 +1,22 @@
+{
+  "name": "faroll-publici",
+  "version": "1.0.0",
+  "description": "Faroll Publicidade — Plataforma de automação de conteúdo com IA",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "node-cron": "^3.0.3",
+    "openai": "^4.77.0"
+  }
+}
