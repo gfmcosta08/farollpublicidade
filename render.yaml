@@ -2,6 +2,7 @@ services:
   - type: web
     name: faroll-publici
     runtime: node
+    plan: starter          # Starter ($7/mês) — necessário para disco persistente
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
@@ -11,7 +12,7 @@ services:
       - key: PORT
         value: 10000
       - key: ENCRYPTION_KEY
-        generateValue: true
+        generateValue: true  # Render gera automaticamente
       - key: DB_PATH
         value: /data/faroll.db
     disk:
