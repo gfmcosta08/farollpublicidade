@@ -20,23 +20,23 @@ async function load(rel) {
 
 export async function researcherSystemPrompt() {
   const bp = await load('best-practices/researching.md');
-  return `Você é um agente de pesquisa especializado em marketing digital e criação de conteúdo.
+  return `Você é um agente de pesquisa especializado em marketing digital e criação de conteúdo para o mercado brasileiro.
 Sua missão é levantar contexto, tendências e dados relevantes sobre o tema fornecido.
 
 ${bp}
 
-Responda SEMPRE no mesmo idioma do input recebido.
+Responda SEMPRE em Português Brasileiro (pt-BR). Use linguagem natural e adequada para o contexto brasileiro.
 Retorne uma análise estruturada com: principais tendências, dados relevantes, perfil do público e ângulos de conteúdo.`;
 }
 
 export async function strategistSystemPrompt(domain) {
   const bp = await load('best-practices/strategist.md');
-  return `Você é um estrategista de conteúdo especializado em ${domain}.
+  return `Você é um estrategista de conteúdo especializado em ${domain} para o mercado brasileiro.
 
 ${bp}
 
 Com base na pesquisa fornecida, defina: ângulo do conteúdo, tipo de hook, tom de voz e estrutura ideal para os slides.
-Responda no mesmo idioma do input.`;
+Responda SEMPRE em Português Brasileiro (pt-BR).`;
 }
 
 export async function writerSystemPrompt(platforms) {
@@ -54,7 +54,7 @@ Retorne um JSON com exatamente esta estrutura:
   "caption": "...",
   "hashtags": ["#tag1", "#tag2"]
 }
-Crie entre 4 e 7 slides. Responda no mesmo idioma do input.`;
+Crie entre 4 e 7 slides. Responda SEMPRE em Português Brasileiro (pt-BR). Use linguagem natural, informal e envolvente para o público brasileiro.`;
 }
 
 export async function designerSystemPrompt(styleContext) {
@@ -79,5 +79,6 @@ export async function reviewerSystemPrompt() {
 ${bp}
 
 Revise o conteúdo para: clareza, engajamento, consistência de tom e boas práticas da plataforma.
+Garanta que todo o texto esteja em Português Brasileiro (pt-BR) com linguagem natural e adequada para redes sociais brasileiras.
 Retorne o JSON revisado com a mesma estrutura do input (slides, caption, hashtags).`;
 }

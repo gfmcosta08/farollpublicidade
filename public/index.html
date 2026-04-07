@@ -269,6 +269,7 @@
         <div id="prog-outputs" class="space-y-2"></div>
       </div>
     </div>
+    <div id="prog-copy-preview"></div>
     <div class="flex gap-3 mt-5">
       <button id="prog-close" onclick="closeModal('modal-progress')" class="hidden px-5 py-2.5 rounded-xl border border-brand-gold/20 text-text-secondary text-sm hover:border-brand-gold/50">Fechar</button>
     </div>
@@ -453,7 +454,9 @@ function renderWizStep() {
     el.className = i+1===s ? 'text-brand-gold font-medium' : 'text-text-muted';
   });
   document.getElementById('wiz-prev').classList.toggle('hidden', s===1);
-  document.getElementById('wiz-next').textContent = s===6 ? '✅ Criar Squad' : 'Próximo →';
+  const _btn = document.getElementById('wiz-next');
+  _btn.disabled = false;
+  _btn.textContent = s===6 ? '✅ Criar Squad' : 'Próximo →';
 
   const d = S.wiz.data;
   const steps = [
@@ -891,6 +894,90 @@ function renderRunOutputs(runId, outputs) {
       <a href="/api/runs/${runId}/outputs/${o.filename}" download="${o.filename}"
         class="px-3 py-1.5 rounded-lg bg-brand-gold/20 text-brand-gold text-xs font-bold hover:bg-brand-gold/30">⬇ Baixar</a>
     </div>`).join('');
+
+  // Exibir conteúdo textual inline (copy-final.json ou copy.json)
+  const copyFile = outputs.find(o => o.filename === 'copy-final.json' || o.filename === 'copy.json');
+  if (copyFile) {
+    fetchAndDisplayCopy(runId, copyFile.filename);
+  }
+}
+
+async function fetchAndDisplayCopy(runId, filename) {
+  try {
+    const res = await fetch(`/api/runs/${runId}/outputs/${filename}`);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const container = document.createElement('div');
+    container.id = 'prog-copy-preview';
+    container.className = 'mt-5 space-y-4';
+
+    // Caption
+    if (data.caption) {
+      const captionBlock = `
+        <div class="rounded-xl border border-brand-gold/20 bg-bg-surface p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-brand-gold uppercase tracking-wider">📝 Legenda</span>
+            <button onclick="copyToClipboard(this, ${JSON.stringify(data.caption)})"
+              class="px-3 py-1 rounded-lg text-xs bg-brand-gold/10 border border-brand-gold/20 text-brand-gold hover:bg-brand-gold/20">Copiar</button>
+          </div>
+          <p class="text-sm text-text-primary whitespace-pre-wrap">${escHtml(data.caption)}</p>
+        </div>`;
+      container.innerHTML += captionBlock;
+    }
+
+    // Slides
+    if (data.slides?.length) {
+      const allSlidesText = data.slides.map((s,i) => `Slide ${i+1}: ${s.title}\n${s.body}`).join('\n\n');
+      const slidesHtml = data.slides.map((s, i) => `
+        <div class="rounded-lg border border-brand-gold/10 bg-bg-surface/60 p-3">
+          <div class="text-xs font-bold text-brand-gold mb-1">Slide ${i+1}: ${escHtml(s.title)}</div>
+          <p class="text-sm text-text-secondary whitespace-pre-wrap">${escHtml(s.body)}</p>
+        </div>`).join('');
+      const slidesBlock = `
+        <div class="rounded-xl border border-brand-gold/20 bg-bg-surface p-4">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold text-brand-gold uppercase tracking-wider">🎠 Slides (${data.slides.length})</span>
+            <button onclick="copyToClipboard(this, ${JSON.stringify(allSlidesText)})"
+              class="px-3 py-1 rounded-lg text-xs bg-brand-gold/10 border border-brand-gold/20 text-brand-gold hover:bg-brand-gold/20">Copiar tudo</button>
+          </div>
+          <div class="space-y-2">${slidesHtml}</div>
+        </div>`;
+      container.innerHTML += slidesBlock;
+    }
+
+    // Hashtags
+    if (data.hashtags?.length) {
+      const hashtagsText = data.hashtags.join(' ');
+      const hashtagsBlock = `
+        <div class="rounded-xl border border-brand-gold/20 bg-bg-surface p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-brand-gold uppercase tracking-wider">🏷️ Hashtags</span>
+            <button onclick="copyToClipboard(this, ${JSON.stringify(hashtagsText)})"
+              class="px-3 py-1 rounded-lg text-xs bg-brand-gold/10 border border-brand-gold/20 text-brand-gold hover:bg-brand-gold/20">Copiar</button>
+          </div>
+          <p class="text-sm text-text-muted">${escHtml(hashtagsText)}</p>
+        </div>`;
+      container.innerHTML += hashtagsBlock;
+    }
+
+    const resultsEl = document.getElementById('prog-results');
+    const existing = document.getElementById('prog-copy-preview');
+    if (existing) existing.remove();
+    resultsEl.appendChild(container);
+  } catch (_) { /* silencioso */ }
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function copyToClipboard(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✅ Copiado!';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  });
 }
 
 // ─── Schedules ────────────────────────────────────────────────────────────────
