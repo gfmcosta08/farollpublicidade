@@ -96,18 +96,12 @@ async function execute(runId, squad, topic, additionalContext, emitter) {
     emit('redator', 'done', { preview: copy.caption?.slice(0, 200) });
   }
 
-  // 5. Designer — DALL-E usa chave OpenAI (provedor principal OpenAI OU chave extra / env)
-  const dalleApiKey = creds.name === 'openai'
-    ? creds.api_key
-    : (squad.openai_image_key
-      || process.env.OPENAI_IMAGE_API_KEY
-      || process.env.OPENAI_API_KEY
-      || '');
+  // 5. Designer — OpenAI (DALL-E) ou Google (Gemini imagem), mesma chave do provedor
   let images = [];
-  if (squad.agents.includes('designer') && copy?.slides?.length > 0 && dalleApiKey) {
-    emit('designer', 'running', { message: 'Gerando imagens com DALL-E...' });
-    const llmDesign = { provider: 'openai', model: squad.model, api_key: dalleApiKey };
-    images = await runDesigner(llmDesign, copy, refContext || squad.ref_notes || '');
+  if (squad.agents.includes('designer') && copy?.slides?.length > 0 && (creds.name === 'openai' || creds.name === 'google')) {
+    const msg = creds.name === 'openai' ? 'Gerando imagens com DALL-E...' : 'Gerando imagens com Gemini...';
+    emit('designer', 'running', { message: msg });
+    images = await runDesigner(llm, copy, refContext || squad.ref_notes || '');
     for (const img of images) {
       if (img.b64) {
         save('image', `slide-${img.slide}.png`, img.b64);
@@ -115,10 +109,8 @@ async function execute(runId, squad, topic, additionalContext, emitter) {
       }
     }
     emit('designer', 'done', { imageCount: images.filter(i => i.b64).length });
-  } else if (squad.agents.includes('designer') && copy?.slides?.length > 0 && !dalleApiKey) {
-    emit('designer', 'skipped', {
-      message: 'DALL-E precisa de uma chave OpenAI: use provedor OpenAI, ou na etapa LLM informe "Chave OpenAI para DALL-E", ou defina OPENAI_IMAGE_API_KEY no servidor.',
-    });
+  } else if (squad.agents.includes('designer') && copy?.slides?.length > 0) {
+    emit('designer', 'skipped', { message: 'Designer requer provedor OpenAI ou Google (Gemini).' });
   }
 
   // 6. Reviewer

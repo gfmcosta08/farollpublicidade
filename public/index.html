@@ -106,15 +106,12 @@
   <!-- Add provider form (hidden by default) -->
   <div id="add-provider-form" class="hidden card rounded-2xl p-6 fade">
     <h3 class="font-bold mb-4 text-brand-gold">Novo Provedor</h3>
-    <div class="grid sm:grid-cols-3 gap-4 mb-4">
-      <div onclick="selectProviderType('openai')"   id="pt-openai"   class="provider-type card sel rounded-xl p-4 text-center cursor-pointer">
-        <div class="text-2xl mb-1">🟢</div><div class="font-bold text-sm">OpenAI</div><div class="text-xs text-text-muted">GPT-4o / o1 / o3</div>
+    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+      <div onclick="selectProviderType('openai')" id="pt-openai" class="provider-type card sel rounded-xl p-4 text-center cursor-pointer">
+        <div class="text-2xl mb-1">🟢</div><div class="font-bold text-sm">OpenAI</div><div class="text-xs text-text-muted">Texto + DALL-E</div>
       </div>
-      <div onclick="selectProviderType('anthropic')" id="pt-anthropic" class="provider-type card rounded-xl p-4 text-center cursor-pointer">
-        <div class="text-2xl mb-1">🟣</div><div class="font-bold text-sm">Anthropic</div><div class="text-xs text-text-muted">Claude 3.5 / 3.7 / 4</div>
-      </div>
-      <div onclick="selectProviderType('minimax')"   id="pt-minimax"   class="provider-type card rounded-xl p-4 text-center cursor-pointer">
-        <div class="text-2xl mb-1">🔵</div><div class="font-bold text-sm">MiniMax</div><div class="text-xs text-text-muted">M2.7 / M2.5 / M2</div>
+      <div onclick="selectProviderType('google')" id="pt-google" class="provider-type card rounded-xl p-4 text-center cursor-pointer">
+        <div class="text-2xl mb-1">🔶</div><div class="font-bold text-sm">Google (Gemini)</div><div class="text-xs text-text-muted">Texto + imagem (AI Studio)</div>
       </div>
     </div>
     <div class="grid sm:grid-cols-2 gap-4 mb-4">
@@ -126,7 +123,7 @@
       <div>
         <label class="block text-xs font-medium text-text-secondary mb-1">API Key *</label>
         <div class="relative">
-          <input id="prov-key" type="password" placeholder="sk-... / sk-ant-... / ..."
+          <input id="prov-key" type="password" placeholder="sk-... (OpenAI) ou chave AI Studio (Google)"
             class="w-full px-3 py-2.5 pr-10 bg-bg-surface border border-brand-gold/20 rounded-xl text-sm font-mono text-text-primary placeholder-text-muted">
           <button onclick="toggleVis('prov-key')" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary">👁</button>
         </div>
@@ -423,7 +420,7 @@ const ALL_AGENTS = [
   {id:'pesquisador',icon:'🔍',label:'Pesquisador',   desc:'Tendências e dados de mercado'},
   {id:'estrategista',icon:'🎯',label:'Estrategista', desc:'Estratégia e ângulo editorial'},
   {id:'redator',icon:'✍️',label:'Redator',           desc:'Copy persuasiva e legendas'},
-  {id:'designer',icon:'🎨',label:'Designer',         desc:'Imagens via DALL-E (OpenAI)'},
+  {id:'designer',icon:'🎨',label:'Designer',         desc:'Imagens: DALL-E (OpenAI) ou Gemini (Google)'},
   {id:'revisor',icon:'✅',label:'Revisor',           desc:'Revisão e polimento final'},
   {id:'publisher',icon:'📤',label:'Publisher',       desc:'Publicação automática no Instagram'},
 ];
@@ -459,7 +456,6 @@ function renderWizStep() {
   _btn.textContent = s===5 ? '✅ Criar Squad' : 'Próximo →';
 
   const d = S.wiz.data;
-  const wizProvName = S.providers.find(p => p.id === d.provider_id)?.name || '';
   const steps = [
     // Step 1
     `<div class="grid lg:grid-cols-3 gap-6 fade">
@@ -536,13 +532,6 @@ function renderWizStep() {
             <label class="block text-xs font-medium text-text-secondary mb-1">Modelo</label>
             <select id="wf-model" class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary text-sm"></select>
           </div>
-          <div id="wf-dalle-key-row" class="${d.provider_id && wizProvName !== 'openai' ? '' : 'hidden'} mt-5 p-4 rounded-xl border border-brand-gold/25 bg-brand-gold/5 space-y-2">
-            <p class="text-xs font-semibold text-brand-gold">Chave OpenAI para DALL-E (somente imagens)</p>
-            <p class="text-xs text-text-secondary">O agente Designer usa a API de imagens da OpenAI. Com MiniMax ou Claude, cole aqui uma chave <code class="text-text-primary">sk-...</code> só para gerar as imagens.</p>
-            <label class="block text-xs font-medium text-text-secondary mb-1">API Key OpenAI</label>
-            <input id="wf-openai-image-key" type="password" value="${d.openai_image_key||''}" placeholder="sk-..."
-              class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted font-mono text-xs">
-          </div>
         </div>
       </div>
       <div class="card rounded-2xl p-5 h-fit sticky top-8">
@@ -550,7 +539,6 @@ function renderWizStep() {
         <div class="space-y-3 text-xs">
           <div><span class="text-text-muted">Provedor:</span><p class="text-brand-gold mt-0.5">${d.provider_name||'—'}</p></div>
           <div><span class="text-text-muted">Modelo:</span><p class="text-text-primary mt-0.5">${d.model||'—'}</p></div>
-          ${wizProvName && wizProvName !== 'openai' ? `<div><span class="text-text-muted">DALL-E:</span><p class="mt-0.5 ${d.openai_image_key?'text-green-400':'text-amber-400'}">${d.openai_image_key?'Chave informada':'Informe a chave OpenAI'}</p></div>` : ''}
         </div>
       </div>
     </div>`,
@@ -613,7 +601,7 @@ function renderWizStep() {
               <div class="text-xs text-text-secondary mt-0.5">${a.desc}</div>
             </div>`).join('')}
         </div>
-        <p class="text-xs text-text-muted mt-4">💡 Designer usa DALL-E (OpenAI): com outro provedor, informe chave OpenAI na etapa LLM. Publisher requer Instagram configurado.</p>
+        <p class="text-xs text-text-muted mt-4">💡 Designer: imagens com DALL-E (OpenAI) ou Gemini (Google), conforme o provedor do squad. Publisher requer Instagram configurado.</p>
       </div>
     </div>`,
 
@@ -659,14 +647,7 @@ function collectStep() {
     d.ref_links   = Array.from(document.querySelectorAll('.ref-link')).map(i=>i.value.trim());
     d.ref_notes   = document.getElementById('wf-ref-notes')?.value?.trim();
   }
-  if (s===2) {
-    d.model = document.getElementById('wf-model')?.value;
-    const dalleRow = document.getElementById('wf-dalle-key-row');
-    const dalleInp = document.getElementById('wf-openai-image-key');
-    if (dalleRow && dalleInp && !dalleRow.classList.contains('hidden')) {
-      d.openai_image_key = dalleInp.value.trim();
-    }
-  }
+  if (s===2) { d.model = document.getElementById('wf-model')?.value; }
   if (s===3) {
     d.auto_publish = document.getElementById('wf-autopub')?.checked;
     d.ig_token     = document.getElementById('wf-ig-token')?.value?.trim();
@@ -721,11 +702,6 @@ async function pickProvider(id, name) {
   const picked = document.querySelector(`.provider-pick[onclick="pickProvider(${id},'${name}')"]`);
   if (picked) { picked.classList.add('sel'); picked.insertAdjacentHTML('beforeend','<span class="text-brand-gold text-lg">✓</span>'); }
   document.getElementById('wiz-model-row')?.classList.remove('hidden');
-  const dalleRow = document.getElementById('wf-dalle-key-row');
-  if (dalleRow) {
-    if (name !== 'openai') dalleRow.classList.remove('hidden');
-    else dalleRow.classList.add('hidden');
-  }
   await loadWizModels(id, S.wiz.data.model);
 }
 
@@ -1091,8 +1067,8 @@ function statusBadge(s) {
   const t = {completed:'✅ Concluído',running:'⏳ Rodando',failed:'❌ Falha',pending:'⏸ Pendente'};
   return `<span class="px-1.5 py-0.5 rounded text-xs ${m[s]||m.pending}">${t[s]||s}</span>`;
 }
-function providerIcon(n) { return {openai:'🟢',anthropic:'🟣',minimax:'🔵'}[n]||'🤖'; }
-function providerBg(n) { return {openai:'bg-green-500/15',anthropic:'bg-purple-500/15',minimax:'bg-blue-500/15'}[n]||'bg-bg-surface'; }
+function providerIcon(n) { return { openai: '🟢', google: '🔶' }[n] || '🤖'; }
+function providerBg(n) { return { openai: 'bg-green-500/15', google: 'bg-amber-500/15' }[n] || 'bg-bg-surface'; }
 
 function confirm(msg, cb) {
   document.getElementById('confirm-msg').textContent = msg;

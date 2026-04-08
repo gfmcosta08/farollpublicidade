@@ -4,34 +4,24 @@ import { encrypt, decrypt } from '../crypto.js';
 
 const router = Router();
 
+const ALLOWED = ['openai', 'google'];
+
 export const MODELS = {
   openai: [
-    { id: 'gpt-4o',              label: 'GPT-4o (Flagship)' },
-    { id: 'gpt-4o-mini',         label: 'GPT-4o Mini (Recomendado ⚡)' },
-    { id: 'gpt-4-turbo',         label: 'GPT-4 Turbo' },
-    { id: 'gpt-3.5-turbo',       label: 'GPT-3.5 Turbo (Econômico)' },
-    { id: 'o1',                  label: 'o1 (Raciocínio Avançado)' },
-    { id: 'o1-mini',             label: 'o1-mini' },
-    { id: 'o3-mini',             label: 'o3-mini' },
+    { id: 'gpt-4o',        label: 'GPT-4o (Flagship)' },
+    { id: 'gpt-4o-mini',   label: 'GPT-4o Mini (Recomendado)' },
+    { id: 'gpt-4-turbo',   label: 'GPT-4 Turbo' },
+    { id: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
+    { id: 'o1',            label: 'o1' },
+    { id: 'o1-mini',       label: 'o1-mini' },
+    { id: 'o3-mini',       label: 'o3-mini' },
   ],
-  anthropic: [
-    { id: 'claude-opus-4-5',              label: 'Claude Opus 4.5 (Mais Capaz)' },
-    { id: 'claude-sonnet-4-5',            label: 'Claude Sonnet 4.5 (Recomendado ⚡)' },
-    { id: 'claude-3-7-sonnet-20250219',   label: 'Claude 3.7 Sonnet' },
-    { id: 'claude-3-5-sonnet-20241022',   label: 'Claude 3.5 Sonnet' },
-    { id: 'claude-haiku-3-5',             label: 'Claude Haiku 3.5 (Rápido)' },
-    { id: 'claude-3-5-haiku-20241022',    label: 'Claude 3.5 Haiku' },
-    { id: 'claude-3-opus-20240229',       label: 'Claude 3 Opus' },
-    { id: 'claude-3-haiku-20240307',      label: 'Claude 3 Haiku (Econômico)' },
-  ],
-  minimax: [
-    { id: 'MiniMax-M2.7',            label: 'MiniMax M2.7 (Flagship)' },
-    { id: 'MiniMax-M2.7-highspeed',  label: 'MiniMax M2.7 Highspeed' },
-    { id: 'MiniMax-M2.5',            label: 'MiniMax M2.5 (Recomendado)' },
-    { id: 'MiniMax-M2.5-highspeed',  label: 'MiniMax M2.5 Highspeed' },
-    { id: 'MiniMax-M2.1',            label: 'MiniMax M2.1' },
-    { id: 'MiniMax-M2.1-highspeed',  label: 'MiniMax M2.1 Highspeed' },
-    { id: 'MiniMax-M2',              label: 'MiniMax M2 (Econômico)' },
+  google: [
+    { id: 'gemini-2.0-flash',       label: 'Gemini 2.0 Flash (Recomendado)' },
+    { id: 'gemini-2.0-flash-001',   label: 'Gemini 2.0 Flash 001' },
+    { id: 'gemini-1.5-pro',         label: 'Gemini 1.5 Pro' },
+    { id: 'gemini-1.5-flash',       label: 'Gemini 1.5 Flash' },
+    { id: 'gemini-2.5-flash-preview-05-20', label: 'Gemini 2.5 Flash Preview' },
   ],
 };
 
@@ -53,8 +43,8 @@ router.get('/:id/models', (req, res) => {
 router.post('/', (req, res) => {
   const { name, label, api_key } = req.body;
   if (!name || !api_key) return res.status(400).json({ error: 'name e api_key são obrigatórios' });
-  if (!['openai', 'anthropic', 'minimax'].includes(name)) {
-    return res.status(400).json({ error: 'name deve ser openai, anthropic ou minimax' });
+  if (!ALLOWED.includes(name)) {
+    return res.status(400).json({ error: 'name deve ser openai ou google' });
   }
   const result = getDb()
     .prepare('INSERT INTO providers (name, label, api_key) VALUES (?, ?, ?)')

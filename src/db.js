@@ -15,6 +15,34 @@ export function getDb() {
   return db;
 }
 
+/** Migra tabela providers antiga (openai/anthropic/minimax) para aceitar google e remover CHECK restritivo. */
+function migrateProvidersIfNeeded(database) {
+  const row = database.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='providers'`).get();
+  if (!row?.sql?.includes("'anthropic'")) return;
+
+  database.exec('PRAGMA foreign_keys = OFF');
+
+  database.exec(`CREATE TABLE providers_new (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    label TEXT NOT NULL,
+    api_key TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+  )`);
+
+  database.exec(`INSERT INTO providers_new (id, name, label, api_key, created_at)
+    SELECT id, name, label, api_key, created_at FROM providers WHERE name = 'openai'`);
+
+  database.exec(`UPDATE squads SET provider_id = NULL
+    WHERE provider_id IN (SELECT id FROM providers WHERE name IN ('anthropic','minimax'))`);
+
+  database.exec('DROP TABLE providers');
+  database.exec('ALTER TABLE providers_new RENAME TO providers');
+
+  database.exec('PRAGMA foreign_keys = ON');
+  console.log('Migração: providers limitados a openai + google; entradas anthropic/minimax removidas (squads afetados sem provedor).');
+}
+
 export async function initDb() {
   mkdirSync(dirname(DB_PATH === ':memory:' ? './data/x' : DB_PATH), { recursive: true });
 
@@ -25,7 +53,7 @@ export async function initDb() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS providers (
       id         INTEGER PRIMARY KEY AUTOINCREMENT,
-      name       TEXT NOT NULL CHECK(name IN ('openai','anthropic','minimax')),
+      name       TEXT NOT NULL,
       label      TEXT NOT NULL,
       api_key    TEXT NOT NULL,
       created_at TEXT DEFAULT (datetime('now'))
@@ -79,6 +107,8 @@ export async function initDb() {
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
+
+  migrateProvidersIfNeeded(db);
 
   const squadCols = db.prepare('PRAGMA table_info(squads)').all();
   if (!squadCols.some((c) => c.name === 'openai_image_key')) {

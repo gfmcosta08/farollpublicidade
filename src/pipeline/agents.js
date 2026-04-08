@@ -59,7 +59,7 @@ export async function runDesigner(llm, copy, styleContext) {
   for (let i = 0; i < Math.min(prompts.length, 6); i++) {
     try {
       const prompt = `${prompts[i].trim()}${noTextSuffix}`;
-      const b64 = await generateImage({ api_key: llm.api_key, prompt });
+      const b64 = await generateImage({ provider: llm.provider, api_key: llm.api_key, prompt });
       images.push({ slide: i + 1, b64 });
     } catch (err) {
       images.push({ slide: i + 1, error: err.message });

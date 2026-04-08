@@ -1,47 +1,28 @@
 import OpenAI from 'openai';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const clientCache = new Map();
+const openaiCache = new Map();
 
-const MINIMAX_DEFAULT_BASE = 'https://api.minimax.io/v1';
-
-/** IDs legados salvos em squads antigos → modelos atuais (OpenAI-compatible API). */
-const MINIMAX_MODEL_ALIASES = {
-  'abab6.5s-chat': 'MiniMax-M2.5',
-  'abab-6.5s-chat': 'MiniMax-M2.5',
-  'abab6.5-chat': 'MiniMax-M2.5',
-  'abab-6.5-chat': 'MiniMax-M2.5',
-  'abab5.5s-chat': 'MiniMax-M2',
-  'abab-5.5s-chat': 'MiniMax-M2',
-  'abab5.5-chat': 'MiniMax-M2',
-  'MiniMax-Text-01': 'MiniMax-M2.7',
-};
-
-function resolveMinimaxModel(model) {
-  return MINIMAX_MODEL_ALIASES[model] || model;
+function openaiClient(apiKey) {
+  const key = `openai:${apiKey}`;
+  if (!openaiCache.has(key)) openaiCache.set(key, new OpenAI({ apiKey }));
+  return openaiCache.get(key);
 }
 
-function minimaxBaseURL() {
-  const u = process.env.MINIMAX_BASE_URL?.trim();
-  return u || MINIMAX_DEFAULT_BASE;
-}
-
-function openaiClient(apiKey, baseURL) {
-  const key = `openai:${apiKey}:${baseURL}`;
-  if (!clientCache.has(key)) {
-    clientCache.set(key, new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) }));
+/** Converte mensagens estilo OpenAI para histórico Gemini. */
+function buildGeminiParts(messages) {
+  const system = messages.find((m) => m.role === 'system')?.content || '';
+  const rest = messages.filter((m) => m.role !== 'system');
+  const history = [];
+  for (const m of rest) {
+    if (m.role === 'user') history.push({ role: 'user', parts: [{ text: String(m.content) }] });
+    else if (m.role === 'assistant') history.push({ role: 'model', parts: [{ text: String(m.content) }] });
   }
-  return clientCache.get(key);
-}
-
-function anthropicClient(apiKey) {
-  const key = `anthropic:${apiKey}`;
-  if (!clientCache.has(key)) clientCache.set(key, new Anthropic({ apiKey }));
-  return clientCache.get(key);
+  return { system, history };
 }
 
 /**
- * Unified LLM call — supports openai, anthropic, minimax.
+ * Chamada unificada — openai ou google (Gemini).
  * @param {{ provider: string, model: string, api_key: string, messages: object[], temperature?: number, maxTokens?: number }} opts
  * @returns {Promise<string>}
  */
@@ -56,27 +37,23 @@ export async function callLLM({ provider, model, api_key, messages, temperature 
     return res.choices[0].message.content;
   }
 
-  if (provider === 'anthropic') {
-    const systemMsg = messages.find(m => m.role === 'system');
-    const userMsgs  = messages.filter(m => m.role !== 'system');
-    const res = await anthropicClient(api_key).messages.create({
+  if (provider === 'google') {
+    const genAI = new GoogleGenerativeAI(api_key);
+    const { system, history } = buildGeminiParts(messages);
+    const gm = genAI.getGenerativeModel({
       model,
-      max_tokens: maxTokens,
-      system: systemMsg?.content || '',
-      messages: userMsgs,
+      systemInstruction: system || undefined,
+      generationConfig: { temperature, maxOutputTokens: maxTokens },
     });
-    return res.content[0].text;
-  }
-
-  if (provider === 'minimax') {
-    const resolvedModel = resolveMinimaxModel(model);
-    const res = await openaiClient(api_key, minimaxBaseURL()).chat.completions.create({
-      model: resolvedModel,
-      messages,
-      temperature,
-      max_tokens: maxTokens,
-    });
-    return res.choices[0].message.content;
+    if (history.length === 0) return '';
+    if (history.length === 1) {
+      const r = await gm.generateContent(history[0].parts[0].text);
+      return r.response.text();
+    }
+    const chat = gm.startChat({ history: history.slice(0, -1) });
+    const last = history[history.length - 1];
+    const r = await chat.sendMessage(last.parts[0].text);
+    return r.response.text();
   }
 
   throw new Error(`Provider desconhecido: ${provider}`);
