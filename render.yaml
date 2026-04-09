@@ -9,6 +9,9 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # node:sqlite (DatabaseSync) exige Node >= 22.5; sem isto o processo morre antes do listen → 502
+      - key: NODE_VERSION
+        value: "22.12.0"
       - key: PORT
         value: 10000
       - key: ENCRYPTION_KEY
