@@ -49,6 +49,7 @@
   .step-dot.done{background:#E2B007}
   .step-dot.active{background:#E2B007;box-shadow:0 0 8px #E2B007}
   .progress-bar{transition:width .5s cubic-bezier(.4,0,.2,1)}
+  .field-hint{font-size:11px;line-height:1.45;color:#6b6b85;margin-top:6px}
 </style>
 </head>
 <body class="min-h-screen text-text-primary font-sans flex">
@@ -119,6 +120,7 @@
         <label class="block text-xs font-medium text-text-secondary mb-1">Nome / Apelido</label>
         <input id="prov-label" type="text" placeholder="Ex: OpenAI Pessoal"
           class="w-full px-3 py-2.5 bg-bg-surface border border-brand-gold/20 rounded-xl text-sm text-text-primary placeholder-text-muted">
+        <p class="field-hint">Só para você reconhecer esta chave na lista (não afeta a IA).</p>
       </div>
       <div>
         <label class="block text-xs font-medium text-text-secondary mb-1">API Key *</label>
@@ -127,6 +129,7 @@
             class="w-full px-3 py-2.5 pr-10 bg-bg-surface border border-brand-gold/20 rounded-xl text-sm font-mono text-text-primary placeholder-text-muted">
           <button onclick="toggleVis('prov-key')" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary">👁</button>
         </div>
+        <p class="field-hint">OpenAI: chave em platform.openai.com. Google: crie em aistudio.google.com/apikey (Gemini + geração de imagem, conforme seu plano).</p>
       </div>
     </div>
     <div class="flex gap-3">
@@ -215,8 +218,9 @@
       </div>
       <div>
         <label class="block text-xs font-medium text-text-secondary mb-1">Tema padrão</label>
-        <input id="sched-topic" type="text" placeholder="Ex: Dica semanal do segmento"
+        <input id="sched-topic" type="text" placeholder="Ex: Dica rápida de [segmento] para a semana"
           class="w-full px-3 py-2.5 bg-bg-surface border border-brand-gold/20 rounded-xl text-sm text-text-primary placeholder-text-muted">
+        <p class="field-hint">Texto enviado como “tema da execução” em cada disparo automático. Use algo genérico do calendário ou edite o agendamento quando quiser variar.</p>
       </div>
     </div>
     <div class="flex gap-3">
@@ -236,13 +240,15 @@
     <div class="space-y-4">
       <div>
         <label class="block text-xs font-medium text-text-secondary mb-1">Tema desta execução *</label>
-        <input id="run-topic" type="text" placeholder="Ex: 3 erros que todo vendedor comete"
+        <input id="run-topic" type="text" placeholder="Ex: 3 erros que todo vendedor comete no follow-up"
           class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted">
+        <p class="field-hint">Uma linha com o <strong>assunto específico deste post</strong> (muda a cada execução). É o que os agentes tratam como “sobre o que escrever agora”. Não precisa ser o texto final; pode ser o título ou a ideia central.</p>
       </div>
       <div>
         <label class="block text-xs font-medium text-text-secondary mb-1">Contexto adicional (opcional)</label>
-        <textarea id="run-context" rows="2" placeholder="Dados, datas, produtos específicos..."
+        <textarea id="run-context" rows="3" placeholder="Ex: CTA = agendar demo; não citar concorrente X; produto Y lança dia 15/04; público = MEIs"
           class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted resize-none text-sm"></textarea>
+        <p class="field-hint">Detalhes <strong>só desta rodada</strong>: datas, oferta, restrições, tom, nomes de produtos, links internos. Complementa o tema sem repetir o brief fixo do squad.</p>
       </div>
     </div>
     <div class="flex gap-3 mt-5">
@@ -465,37 +471,42 @@ function renderWizStep() {
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-medium text-text-secondary mb-1">Nome do Squad *</label>
-              <input id="wf-name" type="text" value="${d.name||''}" placeholder="Ex: Fábrica de Carrosséis Instagram"
+              <input id="wf-name" type="text" value="${d.name||''}" placeholder="Ex: Carrosséis — Minha marca de café"
                 class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted">
+              <p class="field-hint">Nome curto que identifica este conjunto de regras na lista. Entra no contexto da IA como rótulo do squad (não é o texto do post).</p>
             </div>
             <div>
-              <label class="block text-xs font-medium text-text-secondary mb-1">Descrição *</label>
-              <textarea id="wf-desc" rows="3" placeholder="Descreva o objetivo principal do squad..."
+              <label class="block text-xs font-medium text-text-secondary mb-1">Descrição (brief fixo) *</label>
+              <textarea id="wf-desc" rows="5" placeholder="Ex: Marca de cafés especiais, tom acolhedor, público 25–45 anos. Sempre citar origem dos grãos. Evitar gírias agressivas. Foco em educação leve, não em promoção direta."
                 class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted resize-none text-sm">${d.description||''}</textarea>
+              <p class="field-hint">Objetivo da marca, público, tom de voz, o que pode/não pode dizer, tipo de conteúdo. Vale em <strong>todas</strong> as execuções deste squad (junto com segmento e referências). Não é o tema de um post só — isso você informa ao executar.</p>
             </div>
             <div>
               <label class="block text-xs font-medium text-text-secondary mb-1">Segmento</label>
               <select id="wf-domain" class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary">
                 ${DOMAINS.map(x=>`<option value="${x.v}" ${d.domain===x.v?'selected':''}>${x.l}</option>`).join('')}
               </select>
+              <p class="field-hint">Nicho de mercado; orienta vocabulário, exemplos e ângulos (ex.: saúde fala diferente de tecnologia B2B).</p>
             </div>
           </div>
         </div>
         <div class="card rounded-2xl p-6">
           <h3 class="font-semibold mb-3">🎨 Plataformas Alvo</h3>
+          <p class="field-hint mb-3">Onde o conteúdo será usado; o redator adapta formato e linguagem (ex.: carrossel no Feed).</p>
           <div class="flex flex-wrap gap-2">
             ${PLATFORMS.map(p=>`<span class="tag px-3 py-1.5 rounded-lg border text-sm ${(d.platforms||[]).includes(p)?'on bg-bg-surface border-brand-gold/20':'bg-bg-surface border-brand-gold/20 text-text-secondary'}" onclick="togglePlatform(this,'${p}')">${p}</span>`).join('')}
           </div>
         </div>
         <div class="card rounded-2xl p-6">
           <h3 class="font-semibold mb-1">🔍 Referências de Estilo <span class="text-text-muted text-xs font-normal">(opcional)</span></h3>
-          <p class="text-text-secondary text-xs mb-4">Cole links de perfis ou posts do Instagram para usar como modelo visual e de linguagem.</p>
+          <p class="text-text-secondary text-xs mb-4">Cole links de perfis ou posts do Instagram. O sistema resume o estilo (tom, tipo de gancho) e repassa aos agentes; o designer também usa como referência visual quando aplicável.</p>
           <div id="ref-links-wrap" class="space-y-2 mb-3"></div>
           <button onclick="addRefLink()" class="text-xs text-brand-gold border border-brand-gold/30 px-3 py-1.5 rounded-lg hover:bg-brand-gold/10">+ Adicionar link</button>
           <div class="mt-4">
             <label class="block text-xs font-medium text-text-secondary mb-1">Notas sobre o estilo desejado</label>
-            <textarea id="wf-ref-notes" rows="2" placeholder="Ex: Gosto de cores vibrantes, hooks com dados, linguagem direta..."
+            <textarea id="wf-ref-notes" rows="2" placeholder="Ex: Prefiro fundos escuros, frases curtas, emojis com moderação, sempre CTA suave no último slide"
               class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted resize-none text-sm">${d.ref_notes||''}</textarea>
+            <p class="field-hint">Complemento em texto livre ao que os links mostram: paleta, ritmo, tipo de hook, o que imitar ou evitar.</p>
           </div>
         </div>
       </div>
@@ -515,6 +526,7 @@ function renderWizStep() {
       <div class="lg:col-span-2">
         <div class="card rounded-2xl p-6">
           <h2 class="text-lg font-bold text-brand-gold mb-4">🤖 Provedor LLM</h2>
+          <p class="field-hint mb-4">Conta e modelo usados para texto e imagens deste squad. OpenAI: texto + DALL·E. Google: texto + imagem Gemini (mesma chave).</p>
           <div id="wiz-providers-list" class="space-y-2 mb-5">
             ${S.providers.length===0
               ? `<div class="p-4 rounded-xl bg-bg-surface border border-brand-gold/20 text-sm text-text-muted">Nenhum provedor cadastrado. <button onclick="nav('providers')" class="text-brand-gold underline">Cadastre um primeiro</button>.</div>`
@@ -531,6 +543,7 @@ function renderWizStep() {
           <div id="wiz-model-row" class="${d.provider_id?'':'hidden'}">
             <label class="block text-xs font-medium text-text-secondary mb-1">Modelo</label>
             <select id="wf-model" class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary text-sm"></select>
+            <p class="field-hint">Modelos mais capazes costumam melhorar texto e raciocínio; podem custar mais por execução.</p>
           </div>
         </div>
       </div>
@@ -548,7 +561,7 @@ function renderWizStep() {
       <div class="lg:col-span-2">
         <div class="card rounded-2xl p-6">
           <div class="flex items-start justify-between mb-5">
-            <div><h2 class="text-lg font-bold text-brand-gold">📱 Instagram</h2><p class="text-text-secondary text-xs mt-1">Configure para publicação automática (opcional).</p></div>
+            <div><h2 class="text-lg font-bold text-brand-gold">📱 Instagram</h2><p class="text-text-secondary text-xs mt-1">Só para <strong>publicar automaticamente</strong> após gerar o conteúdo. Não altera o texto dos slides; pode deixar desligado e publicar manualmente.</p></div>
             <label class="flex items-center gap-2 cursor-pointer">
               <span class="text-xs text-text-secondary">Publicação automática</span>
               <div class="relative">
@@ -562,16 +575,19 @@ function renderWizStep() {
               <label class="block text-xs font-medium text-text-secondary mb-1">Access Token</label>
               <input id="wf-ig-token" type="password" value="${d.ig_token||''}" placeholder="EAA..."
                 class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted font-mono text-xs">
+              <p class="field-hint">Token de longa duração do app Meta com permissões do Instagram.</p>
             </div>
             <div>
               <label class="block text-xs font-medium text-text-secondary mb-1">User ID</label>
               <input id="wf-ig-user" type="text" value="${d.ig_user_id||''}" placeholder="178414..."
                 class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted font-mono text-xs">
+              <p class="field-hint">ID numérico da conta Instagram Business/Creator ligada ao app.</p>
             </div>
             <div>
               <label class="block text-xs font-medium text-text-secondary mb-1">ImgBB Key (necessário para hospedar imagens)</label>
               <input id="wf-imgbb" type="password" value="${d.imgbb_key||''}" placeholder="f1a2b3..."
                 class="w-full px-3 py-3 bg-bg-surface border border-brand-gold/20 rounded-xl text-text-primary placeholder-text-muted font-mono text-xs">
+              <p class="field-hint">API key do ImgBB: gera URLs públicas das imagens para a API do Instagram aceitar o carrossel.</p>
             </div>
           </div>
         </div>
@@ -589,7 +605,8 @@ function renderWizStep() {
     `<div class="fade">
       <div class="card rounded-2xl p-6">
         <h2 class="text-lg font-bold text-brand-gold mb-1">👥 Equipe de Agentes</h2>
-        <p class="text-text-secondary text-xs mb-5">Selecione os agentes que vão trabalhar neste squad.</p>
+        <p class="text-text-secondary text-xs mb-2">Marque quais etapas rodam a cada execução. Desmarcar um agente pula aquela etapa (ex.: sem pesquisador, o estrategista/redator usam só o brief e o tema).</p>
+        <p class="field-hint mb-5">Inclua <strong>Designer</strong> se quiser imagens; <strong>Publisher</strong> só faz sentido com Instagram configurado e publicação automática ativa.</p>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           ${ALL_AGENTS.map(a=>`
             <div class="card ${(d.agents||[]).includes(a.id)?'sel':''} rounded-xl p-4 cursor-pointer" onclick="toggleAgent('${a.id}',this)" data-agent="${a.id}">
@@ -612,6 +629,7 @@ function renderWizStep() {
         <div class="grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
           <div><span class="text-xs text-text-muted uppercase tracking-wider">Nome</span><p class="font-semibold mt-0.5">${d.name||'—'}</p></div>
           <div><span class="text-xs text-text-muted uppercase tracking-wider">Segmento</span><p class="mt-0.5 text-text-secondary">${d.domain||'—'}</p></div>
+          <div class="sm:col-span-2"><span class="text-xs text-text-muted uppercase tracking-wider">Descrição (brief fixo)</span><p class="mt-0.5 text-text-secondary text-xs whitespace-pre-wrap">${String(d.description||'—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p></div>
           <div><span class="text-xs text-text-muted uppercase tracking-wider">Provedor</span><p class="mt-0.5 text-brand-gold">${d.provider_name||'—'}</p></div>
           <div><span class="text-xs text-text-muted uppercase tracking-wider">Modelo</span><p class="mt-0.5 text-text-secondary">${d.model||'—'}</p></div>
           <div class="sm:col-span-2"><span class="text-xs text-text-muted uppercase tracking-wider">Plataformas</span><p class="mt-0.5 text-text-secondary">${(d.platforms||[]).join(', ')||'—'}</p></div>
@@ -659,6 +677,7 @@ function collectStep() {
 async function createSquad() {
   const d = S.wiz.data;
   if (!d.name) { alert('Nome do squad é obrigatório (etapa 1)'); return; }
+  if (!d.description?.trim()) { alert('Preencha a descrição (brief fixo) na etapa 1 — é o que orienta a IA em todas as execuções.'); return; }
   if (!d.provider_id) { alert('Selecione um provedor LLM (etapa 2)'); return; }
   try {
     document.getElementById('wiz-next').disabled = true;

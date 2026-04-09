@@ -49,16 +49,23 @@ export async function runDesigner(llm, copy, styleContext) {
     { role: 'user',   content: `Conteúdo dos slides:\n${JSON.stringify(copy.slides, null, 2)}` },
   ]});
   const parsed = safeParseJSON(raw, { image_prompts: [] });
+  // Fallback sem citar títulos no prompt — citar texto em PT induz o modelo a renderizar palavras na imagem.
   const prompts = parsed.image_prompts?.length
     ? parsed.image_prompts
-    : copy.slides.map((s, i) => `Professional social media graphic, slide ${i + 1}: ${s.title}. ${styleContext}`);
+    : copy.slides.map(
+        (_s, i) =>
+          `Vertical 9:16 editorial background for social slide ${i + 1} of ${copy.slides.length}, abstract premium mood, soft lighting, cohesive art direction. Theme suggested only through objects, color and atmosphere — no headlines, no posters, no signage. ${styleContext || 'modern, professional, clean'}.`,
+      );
 
-  const noTextSuffix = ' Absolutely no text, no letters, no words, no numbers, no typography, no captions, no watermarks in the image.';
+  const noTextPrefix =
+    '[IMAGE CONSTRAINT — NON-NEGOTIABLE] The output must be a single image with zero readable text: no letters, numbers, words, captions, signs, screens with UI, book titles, labels, logos with readable names, watermarks, or typography anywhere in the frame. Pure visuals only.\n\n';
+  const noTextSuffix =
+    ' Still: absolutely no text, letters, words, numbers, typography, captions, signs, or watermarks in the image — illustration or photograph only.';
 
   const images = [];
   for (let i = 0; i < Math.min(prompts.length, 6); i++) {
     try {
-      const prompt = `${prompts[i].trim()}${noTextSuffix}`;
+      const prompt = `${noTextPrefix}${prompts[i].trim()}${noTextSuffix}`;
       const b64 = await generateImage({ provider: llm.provider, api_key: llm.api_key, prompt });
       images.push({ slide: i + 1, b64 });
     } catch (err) {

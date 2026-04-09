@@ -58,19 +58,20 @@ Crie entre 4 e 7 slides. Responda SEMPRE em Português Brasileiro (pt-BR). Use l
 }
 
 export async function designerSystemPrompt(styleContext) {
-  const bp = await load('best-practices/image-design.md');
-  const textRule = `REGRA OBRIGATÓRIA — IMAGEM SEM TEXTO:
-Nenhum texto, letras, números, palavras, legendas, placas, logotipos com tipografia legível, marcas d'água ou qualquer tipografia na cena. Apenas ilustração/fotografia pura. Cada string em "image_prompts" DEVE terminar reforçando "no text, no letters, no typography, no watermarks" em inglês.`;
-  return `Você é um diretor de arte criando prompts de imagem para DALL-E 3.
+  const bp = await load('best-practices/image-generation-raster.md');
+  const textRule = `REGRA ABSOLUTA — bitmap sem texto:
+A saída é UMA imagem por slide (foto/ilustração). É proibido qualquer texto, letra, número, placa, ecrã com UI, jornal, etiqueta legível ou tipografia na cena. Não repitas títulos dos slides como texto na imagem — só traduz ideias em elementos visuais (objetos, luz, cor, ambiente).
+Cada string em "image_prompts" deve estar em inglês, ser rica em detalhe visual, e terminar com: no text, no letters, no numbers, no logos, no watermarks, no typography in the image.`;
+  return `Você é um diretor de arte escrevendo prompts para geradores de imagem (DALL-E 3 ou Gemini): uma imagem raster por slide, sem HTML e sem tipografia na cena.
 
 ${bp}
 
-Estilo de referência: ${styleContext || 'moderno, profissional, clean, alta qualidade'}
+Estilo de referência (traduzir em palavras visuais, nunca como texto na imagem): ${styleContext || 'moderno, profissional, clean, alta qualidade'}
 
 ${textRule}
 
-Para cada slide, crie um prompt DALL-E detalhado em inglês (DALL-E funciona melhor em inglês).
-Retorne JSON:
+Para cada slide, use o tema do conteúdo apenas como **conceito visual**; não inclua frases dos slides como texto a desenhar.
+Retorne somente JSON:
 {
   "image_prompts": ["detailed English prompt for slide 1", "..."]
 }`;

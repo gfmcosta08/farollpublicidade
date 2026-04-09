@@ -2,15 +2,20 @@ import OpenAI from 'openai';
 
 const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.0-flash-preview-image-generation';
 
+/** Instrução fixa para APIs de imagem (reforço além do prompt do utilizador). */
+const GEMINI_IMAGE_SYSTEM =
+  'You generate one image from the user description. The image must contain no readable text: no letters, numbers, words, signage, book covers with titles, phone UIs, newspapers, watermarks, or logos with readable names. Visual scene only.';
+
 /**
  * Imagem via DALL-E 3 (OpenAI).
  * @returns {Promise<string>} base64 PNG (sem prefixo data:)
  */
 async function generateImageOpenAI(api_key, prompt, size = '1024x1792', quality = 'standard') {
   const client = new OpenAI({ apiKey: api_key });
+  const dallE3Prompt = `Create a single image with NO text, letters, numbers, captions, signs, watermarks, or typography anywhere — only the visual scene described below.\n\n${prompt}`;
   const res = await client.images.generate({
     model:           'dall-e-3',
-    prompt,
+    prompt:          dallE3Prompt,
     n:               1,
     size,
     quality,
@@ -27,9 +32,12 @@ async function generateImageOpenAI(api_key, prompt, size = '1024x1792', quality 
 async function generateImageGoogle(api_key, prompt) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${encodeURIComponent(api_key)}`;
   const body = {
+    systemInstruction: {
+      parts: [{ text: GEMINI_IMAGE_SYSTEM }],
+    },
     contents: [{
       role:  'user',
-      parts: [{ text: `Generate a single image for this description. ${prompt}` }],
+      parts: [{ text: `Generate exactly one image. Follow the description; keep the frame free of any written text or typography.\n\n${prompt}` }],
     }],
     generationConfig: {
       responseModalities: ['IMAGE', 'TEXT'],

@@ -50,10 +50,13 @@ async function execute(runId, squad, topic, additionalContext, emitter) {
   // Build context brief
   const brief = [
     `Squad: ${squad.name}`,
-    `Tópico: ${topic}`,
+    squad.description?.trim()
+      ? `Brief fixo do squad (objetivo, marca, regras que valem em toda execução): ${squad.description.trim()}`
+      : '',
+    `Tópico desta execução: ${topic}`,
     `Segmento: ${squad.domain}`,
     `Plataformas: ${(squad.platforms || []).join(', ')}`,
-    additionalContext ? `Contexto adicional: ${additionalContext}` : '',
+    additionalContext ? `Contexto adicional só desta execução: ${additionalContext}` : '',
   ].filter(Boolean).join('\n');
 
   // 1. Analyze reference links
