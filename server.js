@@ -10,7 +10,9 @@ import runsRouter from './src/routes/runs.js';
 import schedulesRouter from './src/routes/schedules.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
+/** Render (e outros PaaS) fazem health check de fora do container — precisa IPv4 em todas as interfaces. */
+const HOST = process.env.HOST || '0.0.0.0';
 
 const app = express();
 app.use(express.json({ limit: '20mb' }));
@@ -29,4 +31,6 @@ app.get('*', (_req, res) => res.sendFile(join(__dirname, 'public', 'index.html')
 await initDb();
 await initScheduler();
 
-app.listen(PORT, () => console.log(`🔦 Faroll Publicidade rodando na porta ${PORT}`));
+app.listen(PORT, HOST, () =>
+  console.log(`🔦 Faroll Publicidade em http://${HOST}:${PORT}`),
+);
