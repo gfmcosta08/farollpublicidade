@@ -303,20 +303,46 @@ const S = {
 };
 
 // ─── API helpers ─────────────────────────────────────────────────────────────
+/** Evita alert() com HTML inteiro (502 Render) ou corpos gigantes. */
+async function readApiErrorBody(r) {
+  const status = r.status;
+  let text = '';
+  try { text = await r.text(); } catch { /* ignore */ }
+  const t = text.trim();
+  if (status === 502 || status === 503 || status === 504) {
+    return `Servidor temporariamente indisponível (HTTP ${status}). Aguarde um minuto e tente de novo — no Render, confira se o deploy terminou e os logs não mostram crash.`;
+  }
+  if (t.startsWith('<!DOCTYPE') || t.startsWith('<html') || t.startsWith('<!doctype')) {
+    return `Erro HTTP ${status}: o servidor devolveu uma página HTML em vez de JSON (típico de proxy/gateway). Verifique os logs do hospedeiro.`;
+  }
+  try {
+    const j = JSON.parse(t);
+    if (j && typeof j.error === 'string') return j.error;
+  } catch { /* not JSON */ }
+  if (t.length > 240) return `Erro HTTP ${status}: ${t.slice(0, 200)}…`;
+  return t || `Erro HTTP ${status}`;
+}
+
 const api = {
   async get(path) {
-    const r = await fetch(path); if (!r.ok) throw new Error(await r.text()); return r.json();
+    const r = await fetch(path);
+    if (!r.ok) throw new Error(await readApiErrorBody(r));
+    return r.json();
   },
   async post(path, body) {
     const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if (!r.ok) throw new Error(await r.text()); return r.json();
+    if (!r.ok) throw new Error(await readApiErrorBody(r));
+    return r.json();
   },
   async put(path, body) {
     const r = await fetch(path, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if (!r.ok) throw new Error(await r.text()); return r.json();
+    if (!r.ok) throw new Error(await readApiErrorBody(r));
+    return r.json();
   },
   async del(path) {
-    const r = await fetch(path, { method:'DELETE' }); if (!r.ok) throw new Error(await r.text()); return r.json();
+    const r = await fetch(path, { method:'DELETE' });
+    if (!r.ok) throw new Error(await readApiErrorBody(r));
+    return r.json();
   },
 };
 
@@ -685,7 +711,7 @@ async function createSquad() {
     await api.post('/api/squads', d);
     nav('squads');
   } catch(e) {
-    alert('Erro ao criar squad: ' + e.message);
+    alert('Erro ao criar squad\n\n' + (e.message || String(e)));
     document.getElementById('wiz-next').disabled = false;
     document.getElementById('wiz-next').textContent = '✅ Criar Squad';
   }
