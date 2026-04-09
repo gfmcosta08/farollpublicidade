@@ -11,8 +11,8 @@ import schedulesRouter from './src/routes/schedules.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 3000;
-/** Render (e outros PaaS) fazem health check de fora do container — precisa IPv4 em todas as interfaces. */
-const HOST = process.env.HOST || '0.0.0.0';
+/** Sempre 0.0.0.0: não usar process.env.HOST — alguns PaaS definem HOST=localhost e quebram o health check (502). */
+const BIND = '0.0.0.0';
 
 const app = express();
 app.use(express.json({ limit: '20mb' }));
@@ -31,6 +31,6 @@ app.get('*', (_req, res) => res.sendFile(join(__dirname, 'public', 'index.html')
 await initDb();
 await initScheduler();
 
-app.listen(PORT, HOST, () =>
-  console.log(`🔦 Faroll Publicidade em http://${HOST}:${PORT}`),
+app.listen(PORT, BIND, () =>
+  console.log(`🔦 Faroll Publicidade em http://${BIND}:${PORT} (PORT env=${process.env.PORT ?? 'não definido'})`),
 );
