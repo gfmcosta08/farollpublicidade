@@ -844,7 +844,7 @@ const STEP_LABELS = {
   pesquisador: '🔍 Pesquisador',
   estrategista: '🎯 Estrategista',
   redator: '✍️ Redator',
-  designer: '🎨 Designer (DALL-E)',
+  designer: '🎨 Designer (imagens)',
   revisor: '✅ Revisor',
   publisher: '📤 Publisher',
 };
@@ -860,6 +860,35 @@ function openProgressModal(runId) {
 
   const stepsState = {};
   const sse = new EventSource(`/api/runs/${runId}/stream`);
+  let finished = false;
+
+  const cleanup = () => {
+    finished = true;
+    if (pollIv) clearInterval(pollIv);
+    try { sse.close(); } catch (_) {}
+  };
+
+  /** Se o SSE cair (proxy timeout), o servidor continua a correr — consultamos o estado do run. */
+  let pollIv = setInterval(async () => {
+    if (finished) return;
+    try {
+      const run = await api.get(`/api/runs/${runId}`);
+      if (run.status === 'completed') {
+        cleanup();
+        document.getElementById('prog-status').textContent = '✅ Concluído!';
+        document.getElementById('prog-status').className = 'text-xs font-mono px-2 py-1 rounded-full bg-green-500/20 text-green-400';
+        renderRunOutputs(runId, run.outputs || []);
+        document.getElementById('prog-close').classList.remove('hidden');
+        if (S.page === 'dashboard') loadDashboard();
+      } else if (run.status === 'failed') {
+        cleanup();
+        document.getElementById('prog-status').textContent = '❌ Erro';
+        document.getElementById('prog-status').className = 'text-xs font-mono px-2 py-1 rounded-full bg-red-500/20 text-red-400';
+        document.getElementById('prog-steps').innerHTML += `<div class="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">${run.error || 'Execução falhou'}</div>`;
+        document.getElementById('prog-close').classList.remove('hidden');
+      }
+    } catch (_) { /* ainda a correr ou rede */ }
+  }, 8000);
 
   sse.onmessage = (e) => {
     const ev = JSON.parse(e.data);
@@ -868,14 +897,14 @@ function openProgressModal(runId) {
       stepsState[key] = ev;
       renderProgSteps(stepsState);
     } else if (ev.type === 'complete') {
-      sse.close();
+      cleanup();
       document.getElementById('prog-status').textContent = '✅ Concluído!';
       document.getElementById('prog-status').className = 'text-xs font-mono px-2 py-1 rounded-full bg-green-500/20 text-green-400';
       renderRunOutputs(runId, ev.outputs);
       document.getElementById('prog-close').classList.remove('hidden');
       if (S.page === 'dashboard') loadDashboard();
     } else if (ev.type === 'error') {
-      sse.close();
+      cleanup();
       document.getElementById('prog-status').textContent = '❌ Erro';
       document.getElementById('prog-status').className = 'text-xs font-mono px-2 py-1 rounded-full bg-red-500/20 text-red-400';
       document.getElementById('prog-steps').innerHTML += `<div class="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">${ev.message}</div>`;
@@ -883,8 +912,10 @@ function openProgressModal(runId) {
     }
   };
   sse.onerror = () => {
-    sse.close();
-    document.getElementById('prog-status').textContent = 'Conexão perdida';
+    if (finished) return;
+    document.getElementById('prog-status').textContent = 'Ligação SSE instável — a aguardar servidor (o run pode continuar em segundo plano)';
+    document.getElementById('prog-status').className = 'text-xs font-mono px-2 py-1 rounded-full bg-amber-500/20 text-amber-400';
+    // Não fechar o EventSource: o browser tenta reconectar; o polling também deteta conclusão.
   };
 }
 

@@ -52,6 +52,8 @@ router.get('/:id/stream', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
+  /** Evita buffer em proxies (nginx/Render) que cortam SSE “idle” durante passos longos (ex.: várias imagens). */
+  res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
   const send = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`);
@@ -76,16 +78,36 @@ router.get('/:id/stream', (req, res) => {
     return res.end();
   }
 
+  let ended = false;
+  const finish = () => {
+    if (ended) return;
+    ended = true;
+    clearInterval(pingTimer);
+    try { res.end(); } catch { /* ignore */ }
+  };
+
+  /** Comentário SSE (linha `: ...`) — mantém a ligação viva no proxy enquanto o Designer chama APIs lentas. */
+  const pingTimer = setInterval(() => {
+    try {
+      if (!ended) res.write(': ping\n\n');
+    } catch {
+      finish();
+    }
+  }, 12000);
+
   const handler = (event) => {
     send(event);
     if (event.type === 'complete' || event.type === 'error') {
       emitter.off('event', handler);
-      res.end();
+      finish();
     }
   };
 
   emitter.on('event', handler);
-  req.on('close', () => emitter.off('event', handler));
+  req.on('close', () => {
+    clearInterval(pingTimer);
+    emitter.off('event', handler);
+  });
 });
 
 // ZIP com todas as imagens do run (um único download — evita bloqueio do navegador)
